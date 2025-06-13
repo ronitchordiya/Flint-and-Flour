@@ -19,6 +19,9 @@ import time
 import hmac
 import hashlib
 
+# Setup logging
+logger = logging.getLogger(__name__)
+
 # Payment integrations
 from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
 import razorpay
