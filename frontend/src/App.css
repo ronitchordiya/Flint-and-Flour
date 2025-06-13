@@ -1900,6 +1900,21 @@ p {
   .features-section {
     padding: 4rem 0;
   }
+  
+  .product-detail-page,
+  .checkout-page,
+  .order-confirmation-page {
+    padding: 2rem 1rem;
+  }
+  
+  .checkout-form,
+  .checkout-summary {
+    padding: 2rem;
+  }
+  
+  .order-status {
+    padding: 3rem 2rem;
+  }
 }
 
 /* Hover animations for interactive elements */
