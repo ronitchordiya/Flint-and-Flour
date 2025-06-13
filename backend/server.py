@@ -1531,6 +1531,152 @@ async def initialize_sample_data():
             "subscription_eligible": False,
             "ingredients": ["Pav", "Potatoes", "Chutneys", "Sev", "Pomegranate"],
             "bakers_notes": "Per piece: ₹60, with chutney: ₹70"
+        },
+        
+        # BREAD-STICKS
+        {
+            "name": "Herb Bread Sticks",
+            "description": "Crispy bread sticks with aromatic herbs.",
+            "category": "breads",
+            "base_price": 200.0,
+            "image_url": "https://images.unsplash.com/photo-1509440159596-0249088772ff",
+            "subscription_eligible": False,
+            "ingredients": ["Flour", "Herbs", "Olive oil", "Yeast", "Salt"],
+            "bakers_notes": "200g pack. Perfect with soups and salads."
+        },
+        
+        # LAVASH
+        {
+            "name": "Beetroot Lavash",
+            "description": "Colorful beetroot lavash with natural pink color.",
+            "category": "breads",
+            "base_price": 200.0,
+            "image_url": "https://images.unsplash.com/photo-1509440159596-0249088772ff",
+            "subscription_eligible": False,
+            "ingredients": ["Beetroot", "Flour", "Water", "Salt", "Oil"],
+            "bakers_notes": "150g. Natural beetroot color and flavor."
+        },
+        {
+            "name": "Spinach Garlic Lavash",
+            "description": "Healthy spinach lavash with garlic flavor.",
+            "category": "breads",
+            "base_price": 200.0,
+            "image_url": "https://images.unsplash.com/photo-1509440159596-0249088772ff",
+            "subscription_eligible": False,
+            "ingredients": ["Spinach", "Garlic", "Flour", "Water", "Salt"],
+            "bakers_notes": "150g. Packed with nutrients."
+        },
+        
+        # TOAST/RUSK
+        {
+            "name": "Salted Toast",
+            "description": "Crispy salted toast perfect for tea time.",
+            "category": "breads",
+            "base_price": 180.0,
+            "image_url": "https://images.unsplash.com/photo-1509440159596-0249088772ff",
+            "subscription_eligible": True,
+            "ingredients": ["Bread", "Salt", "Oil"],
+            "bakers_notes": "200g pack. Double-baked for crispiness."
+        },
+        {
+            "name": "Sweet Rusk",
+            "description": "Mildly sweet rusk, perfect with tea or coffee.",
+            "category": "breads",
+            "base_price": 180.0,
+            "image_url": "https://images.unsplash.com/photo-1509440159596-0249088772ff",
+            "subscription_eligible": True,
+            "ingredients": ["Bread", "Sugar", "Cardamom"],
+            "bakers_notes": "200g pack. Traditional recipe."
+        },
+        
+        # BISCOTTI
+        {
+            "name": "Almond Biscotti",
+            "description": "Traditional Italian almond biscotti, twice-baked for perfect crunch.",
+            "category": "cookies",
+            "base_price": 250.0,
+            "image_url": "https://images.unsplash.com/photo-1485893086445-ed75865251e0",
+            "subscription_eligible": True,
+            "ingredients": ["Almonds", "Flour", "Eggs", "Sugar", "Vanilla"],
+            "bakers_notes": "200g pack. Authentic Italian recipe."
+        },
+        
+        # COTTON CAKES
+        {
+            "name": "Orange Pistachio Cotton Cake",
+            "description": "Light and fluffy cotton cake with orange and pistachio.",
+            "category": "cakes",
+            "base_price": 200.0,
+            "image_url": "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9",
+            "subscription_eligible": False,
+            "ingredients": ["Orange", "Pistachios", "Flour", "Eggs", "Cream"],
+            "bakers_notes": "200g. Japanese-style cotton cake."
+        },
+        {
+            "name": "Chocolate Cotton Cake",
+            "description": "Ultra-light chocolate cotton cake with airy texture.",
+            "category": "cakes",
+            "base_price": 200.0,
+            "image_url": "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9",
+            "subscription_eligible": False,
+            "ingredients": ["Chocolate", "Flour", "Eggs", "Cream", "Cocoa"],
+            "bakers_notes": "200g. Incredibly soft and light."
+        },
+        
+        # MORE KULCHAS
+        {
+            "name": "Plain Kulcha",
+            "description": "Simple, soft kulcha bread perfect with curries.",
+            "category": "breads",
+            "base_price": 135.0,
+            "image_url": "https://images.unsplash.com/photo-1626132647523-66f6bf7add1e",
+            "subscription_eligible": False,
+            "ingredients": ["Refined flour", "Yogurt", "Yeast", "Salt"],
+            "bakers_notes": "140g (2 pc): ₹135"
+        },
+        {
+            "name": "Pyaz da Kulcha",
+            "description": "Onion kulcha with caramelized onions and spices.",
+            "category": "breads",
+            "base_price": 170.0,
+            "image_url": "https://images.unsplash.com/photo-1626132647523-66f6bf7add1e",
+            "subscription_eligible": False,
+            "ingredients": ["Refined flour", "Onions", "Spices", "Yogurt"],
+            "bakers_notes": "220g (2 pc): ₹170. Punjab specialty."
+        },
+        
+        # MORE SNACKS - KHAKRAS
+        {
+            "name": "Moong Dal Masala Khakra",
+            "description": "Protein-rich moong dal khakra with masala spices.",
+            "category": "snacks",
+            "base_price": 200.0,
+            "image_url": "https://images.unsplash.com/photo-1606491956689-2ea866880c84",
+            "subscription_eligible": True,
+            "ingredients": ["Moong dal", "Spices", "Oil", "Salt"],
+            "bakers_notes": "250g pack. High protein snack."
+        },
+        
+        # MORE SNACKS - CHIPS  
+        {
+            "name": "Pepper Banana Chips",
+            "description": "Spicy pepper-flavored banana chips.",
+            "category": "snacks",
+            "base_price": 180.0,
+            "image_url": "https://images.unsplash.com/photo-1606491956689-2ea866880c84",
+            "subscription_eligible": True,
+            "ingredients": ["Raw bananas", "Black pepper", "Oil", "Salt"],
+            "bakers_notes": "200g pack. Kerala spices."
+        },
+        {
+            "name": "Soya Chips",
+            "description": "Healthy soya chips packed with protein.",
+            "category": "snacks",
+            "base_price": 180.0,
+            "image_url": "https://images.unsplash.com/photo-1606491956689-2ea866880c84",
+            "subscription_eligible": True,
+            "ingredients": ["Soya", "Spices", "Oil", "Salt"],
+            "bakers_notes": "200g pack. High protein snack."
         }
     ]
     
