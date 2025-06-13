@@ -1142,7 +1142,9 @@ async def initialize_sample_data():
             "category": "cookies", 
             "base_price": 200.0,
             "image_url": "https://images.pexels.com/photos/6996299/pexels-photo-6996299.jpeg",
-            "subscription_eligible": True
+            "subscription_eligible": True,
+            "ingredients": ["Premium butter", "Pastry flour", "Powdered sugar", "Sea salt", "Vanilla beans"],
+            "bakers_notes": "Made with French technique using cultured butter for that distinctive tangy flavor."
         },
         # Cakes
         {
