@@ -458,7 +458,7 @@ def test_delivery_info():
 
 def run_all_tests():
     print(f"\n{'=' * 80}")
-    print(f"STARTING JWT AUTHENTICATION SYSTEM TESTS")
+    print(f"STARTING FLINT & FLOURS E-COMMERCE PLATFORM TESTS")
     print(f"Backend URL: {API_URL}")
     print(f"Test Email: {test_email}")
     print(f"{'=' * 80}\n")
@@ -467,7 +467,17 @@ def run_all_tests():
         # Basic health check
         test_health_check()
         
-        # Registration tests
+        # Products tests
+        test_get_products()
+        test_get_products_by_region()
+        
+        # Cart tests
+        test_cart_calculation()
+        
+        # Delivery tests
+        test_delivery_info()
+        
+        # Authentication tests
         test_register_user_india()
         test_register_duplicate_email()
         test_register_invalid_region()
