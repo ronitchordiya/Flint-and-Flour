@@ -700,6 +700,11 @@ async def calculate_cart(cart_data: CartUpdate, region: str = "India"):
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.utcnow()}
 
+# Delivery endpoint
+@api_router.get("/delivery", response_model=DeliveryInfo)
+async def get_delivery_availability(region: str = "India"):
+    return get_delivery_info(region)
+
 # Admin endpoints
 @api_router.post("/admin/products", response_model=ProductResponse)
 async def create_product(
