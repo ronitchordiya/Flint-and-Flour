@@ -1132,7 +1132,9 @@ async def initialize_sample_data():
             "category": "cookies",
             "base_price": 250.0,
             "image_url": "https://images.unsplash.com/photo-1590080874088-eec64895b423",
-            "subscription_eligible": False
+            "subscription_eligible": False,
+            "ingredients": ["Organic flour", "Belgian chocolate chips", "Farm butter", "Brown sugar", "Vanilla extract"],
+            "bakers_notes": "Each cookie is hand-rolled and baked in small batches. The secret is in our 24-hour dough fermentation process."
         },
         {
             "name": "Handmade Butter Cookies",
