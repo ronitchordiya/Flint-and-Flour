@@ -626,6 +626,8 @@ async def get_product(product_id: str, region: str = "India"):
         image_url=product.image_url,
         subscription_eligible=product.subscription_eligible,
         in_stock=product.in_stock,
+        ingredients=product.ingredients or [],
+        bakers_notes=product.bakers_notes,
         created_at=product.created_at
     )
 
