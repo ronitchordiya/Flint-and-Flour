@@ -209,6 +209,81 @@ backend:
       - working: true
         agent: "testing"
         comment: "Profile management endpoints work correctly. GET /api/user/profile returns user data when authenticated and rejects unauthenticated requests. PUT /api/user/profile successfully updates region preference and validates region values."
+        
+  - task: "Health Check Endpoint"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "unknown"
+        agent: "main"
+        comment: "GET /api/health endpoint to verify backend is responding"
+      - working: true
+        agent: "testing"
+        comment: "Health check endpoint successfully tested. Returns status: healthy and current timestamp as expected."
+        
+  - task: "Products Endpoint"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "unknown"
+        agent: "main"
+        comment: "GET /api/products endpoint to retrieve product listings"
+      - working: true
+        agent: "testing"
+        comment: "Products endpoint successfully tested. Returns a list of products with all required fields including name, description, price, and currency."
+        
+  - task: "Regional Product Pricing"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "unknown"
+        agent: "main"
+        comment: "Regional pricing conversion for products (INR to CAD)"
+      - working: true
+        agent: "testing"
+        comment: "Regional pricing conversion works correctly. Products endpoint with region=Canada parameter returns prices in CAD with correct conversion rate (0.06). Currency field is properly updated based on region."
+        
+  - task: "Cart Calculation"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "unknown"
+        agent: "main"
+        comment: "POST /api/cart endpoint for calculating cart totals with tax"
+      - working: true
+        agent: "testing"
+        comment: "Cart calculation endpoint works correctly. Properly calculates subtotal, tax (18% for India, 13% for Canada), and total based on region. Returns correct currency and delivery message."
+        
+  - task: "Delivery Information"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: "unknown"
+        agent: "main"
+        comment: "GET /api/delivery endpoint for regional delivery information"
+      - working: true
+        agent: "testing"
+        comment: "Delivery information endpoint works correctly. Returns region-specific delivery availability, cutoff times, and appropriate messages. Handles invalid regions gracefully."
 
 frontend:
   - task: "Auth Context and State Management"
@@ -308,6 +383,11 @@ test_plan:
     - "User Login Endpoint"
     - "User Profile Management"
     - "Auth Context and State Management"
+    - "Health Check Endpoint"
+    - "Products Endpoint"
+    - "Regional Product Pricing"
+    - "Cart Calculation"
+    - "Delivery Information"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"
@@ -317,3 +397,5 @@ agent_communication:
     message: "Implemented complete JWT authentication system for Flint & Flours. All backend auth endpoints created with proper JWT token handling, password hashing, and MongoDB integration. Frontend has full auth flow with React Context, registration/login/profile pages, and protected routes. System includes region selection (India/Canada), simulated email verification, and password reset. Ready for comprehensive backend testing to verify all endpoints and auth flows work correctly."
   - agent: "testing"
     message: "Completed comprehensive testing of all backend JWT authentication endpoints. Created and executed backend_test.py to test all auth flows. All backend endpoints are working correctly including registration, login, token refresh, profile management, and validation of protected routes. The JWT token generation and validation is working as expected. Email verification and password reset endpoints correctly validate tokens, though full end-to-end testing of these flows would require extracting tokens from logs in a real environment. All high-priority backend tasks have been successfully tested and are working correctly."
+  - agent: "testing"
+    message: "Completed testing of the Flint & Flours e-commerce platform backend functionality. All requested endpoints are working correctly: Health check endpoint returns proper status, Products endpoint successfully retrieves product data, Regional functionality correctly converts prices between INR and CAD, Cart calculation properly applies regional tax rates (18% GST for India, 13% HST for Canada), and Delivery info endpoint returns appropriate regional delivery information. All tests have been added to backend_test.py and are passing successfully. The backend is fully functional for the core e-commerce operations."
