@@ -282,6 +282,180 @@ def test_reset_password_invalid_token():
     assert "invalid or expired reset token" in response.json()["detail"].lower()
     print("✅ Invalid reset token check passed")
 
+def test_get_products():
+    print_test_header("Get Products")
+    
+    response = requests.get(f"{API_URL}/products")
+    print_response(response)
+    
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
+    
+    if len(response.json()) > 0:
+        product = response.json()[0]
+        assert "id" in product
+        assert "name" in product
+        assert "description" in product
+        assert "base_price" in product
+        assert "regional_price" in product
+        assert "currency" in product
+        assert product["currency"] == "INR"  # Default region is India
+    
+    print("✅ Get products passed")
+
+def test_get_products_by_region():
+    print_test_header("Get Products by Region")
+    
+    # Test India region
+    response_india = requests.get(f"{API_URL}/products?region=India")
+    print("India Region Response:")
+    print_response(response_india)
+    
+    assert response_india.status_code == 200
+    assert isinstance(response_india.json(), list)
+    
+    if len(response_india.json()) > 0:
+        product_india = response_india.json()[0]
+        assert product_india["currency"] == "INR"
+        india_price = product_india["regional_price"]
+    
+    # Test Canada region
+    response_canada = requests.get(f"{API_URL}/products?region=Canada")
+    print("Canada Region Response:")
+    print_response(response_canada)
+    
+    assert response_canada.status_code == 200
+    assert isinstance(response_canada.json(), list)
+    
+    if len(response_canada.json()) > 0 and len(response_india.json()) > 0:
+        product_canada = response_canada.json()[0]
+        assert product_canada["currency"] == "CAD"
+        canada_price = product_canada["regional_price"]
+        
+        # Verify price conversion (India to Canada)
+        # The exchange rate in the code is 0.06 (1 INR = 0.06 CAD)
+        # Allow for small rounding differences
+        expected_canada_price = round(india_price * 0.06, 2)
+        assert abs(canada_price - expected_canada_price) < 0.01, f"Expected {expected_canada_price}, got {canada_price}"
+    
+    print("✅ Get products by region passed")
+
+def test_cart_calculation():
+    print_test_header("Cart Calculation")
+    
+    # First, get a product ID to use in the cart
+    response = requests.get(f"{API_URL}/products")
+    assert response.status_code == 200
+    assert len(response.json()) > 0
+    
+    product_id = response.json()[0]["id"]
+    product_price = response.json()[0]["regional_price"]
+    
+    # Test cart calculation for India
+    cart_payload_india = {
+        "items": [
+            {
+                "product_id": product_id,
+                "quantity": 2,
+                "subscription_type": "one-time"
+            }
+        ]
+    }
+    
+    response_india = requests.post(f"{API_URL}/cart?region=India", json=cart_payload_india)
+    print("India Cart Response:")
+    print_response(response_india)
+    
+    assert response_india.status_code == 200
+    assert "items" in response_india.json()
+    assert "subtotal" in response_india.json()
+    assert "tax" in response_india.json()
+    assert "total" in response_india.json()
+    assert "currency" in response_india.json()
+    assert response_india.json()["currency"] == "INR"
+    
+    # Verify tax calculation for India (18% GST)
+    subtotal_india = response_india.json()["subtotal"]
+    tax_india = response_india.json()["tax"]
+    total_india = response_india.json()["total"]
+    
+    expected_tax_india = round(subtotal_india * 0.18, 2)
+    assert abs(tax_india - expected_tax_india) < 0.01, f"Expected tax {expected_tax_india}, got {tax_india}"
+    assert abs(total_india - (subtotal_india + tax_india)) < 0.01, f"Expected total {subtotal_india + tax_india}, got {total_india}"
+    
+    # Test cart calculation for Canada
+    cart_payload_canada = {
+        "items": [
+            {
+                "product_id": product_id,
+                "quantity": 2,
+                "subscription_type": "one-time"
+            }
+        ]
+    }
+    
+    response_canada = requests.post(f"{API_URL}/cart?region=Canada", json=cart_payload_canada)
+    print("Canada Cart Response:")
+    print_response(response_canada)
+    
+    assert response_canada.status_code == 200
+    assert "items" in response_canada.json()
+    assert "subtotal" in response_canada.json()
+    assert "tax" in response_canada.json()
+    assert "total" in response_canada.json()
+    assert "currency" in response_canada.json()
+    assert response_canada.json()["currency"] == "CAD"
+    
+    # Verify tax calculation for Canada (13% HST)
+    subtotal_canada = response_canada.json()["subtotal"]
+    tax_canada = response_canada.json()["tax"]
+    total_canada = response_canada.json()["total"]
+    
+    expected_tax_canada = round(subtotal_canada * 0.13, 2)
+    assert abs(tax_canada - expected_tax_canada) < 0.01, f"Expected tax {expected_tax_canada}, got {tax_canada}"
+    assert abs(total_canada - (subtotal_canada + tax_canada)) < 0.01, f"Expected total {subtotal_canada + tax_canada}, got {total_canada}"
+    
+    print("✅ Cart calculation passed")
+
+def test_delivery_info():
+    print_test_header("Delivery Info")
+    
+    # Test delivery info for India
+    response_india = requests.get(f"{API_URL}/delivery?region=India")
+    print("India Delivery Response:")
+    print_response(response_india)
+    
+    assert response_india.status_code == 200
+    assert "region" in response_india.json()
+    assert "available_today" in response_india.json()
+    assert "message" in response_india.json()
+    assert "cutoff_time" in response_india.json()
+    assert response_india.json()["region"] == "India"
+    
+    # Test delivery info for Canada
+    response_canada = requests.get(f"{API_URL}/delivery?region=Canada")
+    print("Canada Delivery Response:")
+    print_response(response_canada)
+    
+    assert response_canada.status_code == 200
+    assert "region" in response_canada.json()
+    assert "available_today" in response_canada.json()
+    assert "message" in response_canada.json()
+    assert "cutoff_time" in response_canada.json()
+    assert response_canada.json()["region"] == "Canada"
+    
+    # Test invalid region
+    response_invalid = requests.get(f"{API_URL}/delivery?region=InvalidRegion")
+    print("Invalid Region Delivery Response:")
+    print_response(response_invalid)
+    
+    assert response_invalid.status_code == 200  # The API returns 200 even for invalid regions
+    assert response_invalid.json()["region"] == "InvalidRegion"
+    assert response_invalid.json()["available_today"] == False
+    assert "not available" in response_invalid.json()["message"].lower()
+    
+    print("✅ Delivery info passed")
+
 def run_all_tests():
     print(f"\n{'=' * 80}")
     print(f"STARTING JWT AUTHENTICATION SYSTEM TESTS")
