@@ -1105,6 +1105,12 @@ async def get_order(order_id: str, current_user: User = Depends(get_current_user
     return OrderResponse(**order_doc)
 
 # Initialize sample data
+@api_router.post("/clear-products")
+async def clear_products():
+    """Clear all products from database"""
+    await db.products.delete_many({})
+    return {"message": "All products cleared"}
+
 @api_router.post("/init-data")
 async def initialize_sample_data():
     """Initialize sample products and admin user"""
