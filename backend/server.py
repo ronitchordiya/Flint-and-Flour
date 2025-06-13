@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -15,6 +15,13 @@ import jwt
 from jwt import PyJWTError
 import secrets
 import pytz
+import time
+import hmac
+import hashlib
+
+# Payment integrations
+from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
+import razorpay
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -36,6 +43,16 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
 
+# Payment configurations
+STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY', 'sk_test_demo_key')
+RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', 'rzp_test_demo_key')
+RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', 'demo_secret')
+RAZORPAY_WEBHOOK_SECRET = os.environ.get('RAZORPAY_WEBHOOK_SECRET', 'demo_webhook_secret')
+
+# Initialize payment clients
+stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY)
+razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -48,13 +65,15 @@ REGION_CONFIG = {
         "currency": "INR",
         "tax_rate": 0.18,  # 18% GST
         "timezone": "Asia/Kolkata",
-        "exchange_rate": 1.0  # Base currency
+        "exchange_rate": 1.0,  # Base currency
+        "payment_gateway": "razorpay"
     },
     "Canada": {
         "currency": "CAD", 
         "tax_rate": 0.13,  # 13% HST
         "timezone": "America/Toronto",
-        "exchange_rate": 0.06  # 1 INR = 0.06 CAD (approximate)
+        "exchange_rate": 0.06,  # 1 INR = 0.06 CAD (approximate)
+        "payment_gateway": "stripe"
     }
 }
 
