@@ -833,10 +833,271 @@ async def get_all_products_admin(admin_user: User = Depends(get_admin_user)):
     
     return result
 
-# Health check endpoint
-@api_router.get("/health")
-async def health_check():
-    return {"status": "healthy", "timestamp": datetime.utcnow()}
+# NEW PAYMENT ENDPOINTS
+@api_router.post("/payments/checkout", response_model=CheckoutResponse)
+async def create_checkout(checkout_request: CheckoutRequest, request: Request):
+    """Create checkout session with regional payment gateway routing"""
+    try:
+        # Get the frontend origin for redirect URLs
+        origin = request.headers.get("origin") or "http://localhost:3000"
+        
+        # Calculate cart total
+        cart_response = await calculate_cart(
+            CartUpdate(items=checkout_request.cart_items), 
+            checkout_request.region
+        )
+        
+        # Create payment transaction record
+        payment_gateway = REGION_CONFIG[checkout_request.region]["payment_gateway"]
+        
+        transaction = PaymentTransaction(
+            payment_gateway=payment_gateway,
+            amount=cart_response.total,
+            currency=cart_response.currency,
+            region=checkout_request.region,
+            user_email=checkout_request.user_email,
+            cart_items=[item.dict() for item in cart_response.items],
+            delivery_address=checkout_request.delivery_address,
+            metadata={
+                "promo_code": checkout_request.promo_code,
+                "delivery_message": cart_response.delivery_message
+            }
+        )
+        
+        # Save transaction to database
+        await db.payment_transactions.insert_one(transaction.dict())
+        
+        # Route to appropriate payment gateway
+        if payment_gateway == "stripe":
+            # Use Stripe for Canada
+            success_url = f"{origin}/order-confirmation?session_id={{CHECKOUT_SESSION_ID}}"
+            cancel_url = f"{origin}/cart"
+            
+            checkout_session_request = CheckoutSessionRequest(
+                amount=float(cart_response.total),
+                currency=cart_response.currency.lower(),
+                success_url=success_url,
+                cancel_url=cancel_url,
+                metadata={
+                    "transaction_id": transaction.id,
+                    "user_email": checkout_request.user_email or "guest",
+                    "region": checkout_request.region
+                }
+            )
+            
+            session = await stripe_checkout.create_checkout_session(checkout_session_request)
+            
+            # Update transaction with Stripe session ID
+            await db.payment_transactions.update_one(
+                {"id": transaction.id},
+                {"$set": {
+                    "gateway_order_id": session.session_id,
+                    "status": "pending",
+                    "updated_at": datetime.utcnow()
+                }}
+            )
+            
+            return CheckoutResponse(
+                checkout_url=session.url,
+                payment_gateway="stripe",
+                transaction_id=transaction.id,
+                amount=cart_response.total,
+                currency=cart_response.currency,
+                gateway_order_id=session.session_id
+            )
+            
+        elif payment_gateway == "razorpay":
+            # Use Razorpay for India
+            amount_in_paise = int(cart_response.total * 100)
+            
+            order_data = {
+                "amount": amount_in_paise,
+                "currency": cart_response.currency,
+                "receipt": f"receipt_{transaction.id}",
+                "notes": {
+                    "transaction_id": transaction.id,
+                    "user_email": checkout_request.user_email or "guest",
+                    "region": checkout_request.region
+                }
+            }
+            
+            razorpay_order = razorpay_client.order.create(data=order_data)
+            
+            # Update transaction with Razorpay order ID
+            await db.payment_transactions.update_one(
+                {"id": transaction.id},
+                {"$set": {
+                    "gateway_order_id": razorpay_order["id"],
+                    "status": "pending",
+                    "updated_at": datetime.utcnow()
+                }}
+            )
+            
+            return CheckoutResponse(
+                payment_gateway="razorpay",
+                transaction_id=transaction.id,
+                amount=cart_response.total,
+                currency=cart_response.currency,
+                gateway_order_id=razorpay_order["id"],
+                razorpay_key_id=RAZORPAY_KEY_ID
+            )
+            
+    except Exception as e:
+        logger.error(f"Checkout error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/payments/status/{transaction_id}", response_model=PaymentStatusResponse)
+async def get_payment_status(transaction_id: str):
+    """Get payment status for a transaction"""
+    transaction_doc = await db.payment_transactions.find_one({"id": transaction_id})
+    if not transaction_doc:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    
+    transaction = PaymentTransaction(**transaction_doc)
+    
+    try:
+        if transaction.payment_gateway == "stripe" and transaction.gateway_order_id:
+            # Check Stripe status
+            status_response = await stripe_checkout.get_checkout_status(transaction.gateway_order_id)
+            
+            # Update transaction status
+            await db.payment_transactions.update_one(
+                {"id": transaction_id},
+                {"$set": {
+                    "status": "completed" if status_response.payment_status == "paid" else transaction.status,
+                    "payment_status": status_response.payment_status,
+                    "updated_at": datetime.utcnow()
+                }}
+            )
+            
+            # Create order if payment successful
+            if status_response.payment_status == "paid" and transaction.status != "completed":
+                await create_order_from_transaction(transaction)
+            
+            return PaymentStatusResponse(
+                transaction_id=transaction_id,
+                status="completed" if status_response.payment_status == "paid" else transaction.status,
+                payment_status=status_response.payment_status,
+                amount=transaction.amount,
+                currency=transaction.currency
+            )
+            
+        elif transaction.payment_gateway == "razorpay":
+            # For Razorpay, status will be updated via webhook or frontend verification
+            return PaymentStatusResponse(
+                transaction_id=transaction_id,
+                status=transaction.status,
+                payment_status=transaction.payment_status or "pending",
+                amount=transaction.amount,
+                currency=transaction.currency,
+                gateway_payment_id=transaction.gateway_payment_id
+            )
+            
+    except Exception as e:
+        logger.error(f"Payment status check error: {e}")
+        return PaymentStatusResponse(
+            transaction_id=transaction_id,
+            status=transaction.status,
+            payment_status=transaction.payment_status or "unknown",
+            amount=transaction.amount,
+            currency=transaction.currency
+        )
+
+@api_router.post("/payments/razorpay/verify")
+async def verify_razorpay_payment(request: Request):
+    """Verify Razorpay payment from frontend"""
+    try:
+        data = await request.json()
+        payment_id = data.get("razorpay_payment_id")
+        order_id = data.get("razorpay_order_id")
+        signature = data.get("razorpay_signature")
+        
+        # Verify signature
+        generated_signature = hmac.new(
+            RAZORPAY_KEY_SECRET.encode(),
+            f"{order_id}|{payment_id}".encode(),
+            hashlib.sha256
+        ).hexdigest()
+        
+        if generated_signature != signature:
+            raise HTTPException(status_code=400, detail="Invalid signature")
+        
+        # Find transaction by order ID
+        transaction_doc = await db.payment_transactions.find_one({"gateway_order_id": order_id})
+        if not transaction_doc:
+            raise HTTPException(status_code=404, detail="Transaction not found")
+        
+        transaction = PaymentTransaction(**transaction_doc)
+        
+        # Update transaction status
+        await db.payment_transactions.update_one(
+            {"id": transaction.id},
+            {"$set": {
+                "status": "completed",
+                "payment_status": "paid",
+                "gateway_payment_id": payment_id,
+                "updated_at": datetime.utcnow()
+            }}
+        )
+        
+        # Create order
+        await create_order_from_transaction(transaction)
+        
+        return {"status": "success", "transaction_id": transaction.id}
+        
+    except Exception as e:
+        logger.error(f"Razorpay verification error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+async def create_order_from_transaction(transaction: PaymentTransaction):
+    """Create order from completed payment transaction"""
+    try:
+        # Check if order already exists
+        existing_order = await db.orders.find_one({"transaction_id": transaction.id})
+        if existing_order:
+            return
+        
+        # Calculate delivery date (tomorrow if past cutoff)
+        delivery_info = get_delivery_info(transaction.region)
+        delivery_date = datetime.utcnow() + timedelta(days=1 if not delivery_info.available_today else 0)
+        
+        order = Order(
+            user_email=transaction.user_email or "guest@example.com",
+            transaction_id=transaction.id,
+            items=transaction.cart_items,
+            subtotal=transaction.amount - (transaction.amount * 0.15),  # Approximate subtotal
+            tax=transaction.amount * 0.15,  # Approximate tax
+            total=transaction.amount,
+            currency=transaction.currency,
+            region=transaction.region,
+            delivery_address=transaction.delivery_address or {},
+            order_status="confirmed",
+            payment_status="completed",
+            delivery_date=delivery_date,
+            notes=transaction.metadata.get("delivery_message", "")
+        )
+        
+        await db.orders.insert_one(order.dict())
+        logger.info(f"Order created for transaction {transaction.id}")
+        
+    except Exception as e:
+        logger.error(f"Order creation error: {e}")
+
+# Order endpoints
+@api_router.get("/orders", response_model=List[OrderResponse])
+async def get_orders(current_user: User = Depends(get_current_user)):
+    """Get orders for current user"""
+    orders = await db.orders.find({"user_email": current_user.email}).to_list(1000)
+    return [OrderResponse(**order) for order in orders]
+
+@api_router.get("/orders/{order_id}", response_model=OrderResponse)
+async def get_order(order_id: str, current_user: User = Depends(get_current_user)):
+    """Get specific order"""
+    order_doc = await db.orders.find_one({"id": order_id, "user_email": current_user.email})
+    if not order_doc:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    return OrderResponse(**order_doc)
 
 # Initialize sample data
 @api_router.post("/init-data")
