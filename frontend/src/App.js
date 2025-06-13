@@ -370,7 +370,7 @@ const Home = () => {
             animate="animate"
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            <img src="https://images.unsplash.com/photo-1555507036-ab794f4ade50?ixlib=rb-4.0.3" alt="Artisan bakery interior" />
+            <img src="https://images.unsplash.com/photo-1536782896453-61d09f3aaf3e" alt="Artisan bakery interior" />
           </motion.div>
         </div>
       </section>
