@@ -1490,6 +1490,58 @@ p {
   font-size: 1.8rem;
 }
 
+.delivery-details h3 {
+  margin-bottom: 1.5rem;
+  color: var(--mocha);
+  font-size: 1.4rem;
+}
+
+.checkout-form .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.checkout-form .form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--charcoal);
+  font-weight: 500;
+}
+
+.checkout-form .form-group input,
+.checkout-form .form-group textarea {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 2px solid var(--soft-beige);
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.checkout-form .form-group input:focus,
+.checkout-form .form-group textarea:focus {
+  outline: none;
+  border-color: var(--mocha);
+}
+
+.checkout-btn.large {
+  width: 100%;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, var(--mocha), var(--deep-mocha));
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 2rem;
+}
+
+.checkout-btn.large:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
