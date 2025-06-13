@@ -1204,7 +1204,9 @@ async def initialize_sample_data():
             "category": "breads",
             "base_price": 180.0,
             "image_url": "https://images.pexels.com/photos/263168/pexels-photo-263168.jpeg",
-            "subscription_eligible": True
+            "subscription_eligible": True,
+            "ingredients": ["Organic wheat", "Natural yeast", "Olive oil", "Honey", "Himalayan salt"],
+            "bakers_notes": "Shaped by hand and baked in our wood-fired oven for that authentic rustic flavor."
         }
     ]
     
