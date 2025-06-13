@@ -209,6 +209,84 @@ class CartResponse(BaseModel):
 class CartUpdate(BaseModel):
     items: List[CartItem]
 
+# Payment Models
+class PaymentTransaction(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    payment_gateway: str = Field(..., description="stripe or razorpay")
+    gateway_order_id: Optional[str] = None
+    gateway_payment_id: Optional[str] = None
+    amount: float
+    currency: str
+    status: str = Field("initiated", description="initiated, pending, completed, failed, cancelled")
+    payment_status: Optional[str] = None
+    user_id: Optional[str] = None
+    user_email: Optional[str] = None
+    region: str
+    cart_items: List[Dict] = Field(default_factory=list)
+    delivery_address: Optional[Dict] = None
+    metadata: Optional[Dict] = Field(default_factory=dict)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class CheckoutRequest(BaseModel):
+    cart_items: List[CartItem]
+    delivery_address: Dict
+    region: str
+    user_email: Optional[str] = None
+    promo_code: Optional[str] = None
+
+class CheckoutResponse(BaseModel):
+    checkout_url: Optional[str] = None
+    payment_gateway: str
+    transaction_id: str
+    amount: float
+    currency: str
+    gateway_order_id: Optional[str] = None
+    razorpay_key_id: Optional[str] = None
+
+class PaymentStatusRequest(BaseModel):
+    transaction_id: str
+
+class PaymentStatusResponse(BaseModel):
+    transaction_id: str
+    status: str
+    payment_status: str
+    amount: float
+    currency: str
+    gateway_payment_id: Optional[str] = None
+
+# Order Models
+class Order(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: Optional[str] = None
+    user_email: str
+    transaction_id: str
+    items: List[Dict]
+    subtotal: float
+    tax: float
+    total: float
+    currency: str
+    region: str
+    delivery_address: Dict
+    order_status: str = Field("pending", description="pending, confirmed, preparing, out_for_delivery, delivered, cancelled")
+    payment_status: str = Field("pending", description="pending, completed, failed, refunded")
+    delivery_date: Optional[datetime] = None
+    notes: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class OrderResponse(BaseModel):
+    id: str
+    user_email: str
+    items: List[Dict]
+    total: float
+    currency: str
+    region: str
+    order_status: str
+    payment_status: str
+    delivery_date: Optional[datetime]
+    created_at: datetime
+
 # Delivery Models
 class DeliveryInfo(BaseModel):
     region: str
