@@ -1459,7 +1459,7 @@ p {
 
 /* Checkout Page */
 .checkout-page {
-  max-width: 1400px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 4rem 2rem;
 }
@@ -1472,9 +1472,7 @@ p {
 }
 
 .checkout-content {
-  display: grid;
-  grid-template-columns: 1.5fr 1fr;
-  gap: 4rem;
+  display: block;
 }
 
 .checkout-form {
@@ -1482,6 +1480,8 @@ p {
   padding: 3rem;
   border-radius: 25px;
   box-shadow: var(--shadow-soft);
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .checkout-form h2 {
