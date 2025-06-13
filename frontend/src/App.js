@@ -767,6 +767,201 @@ const ProductDetail = () => {
   );
 };
 
+// NEW: Checkout Component
+const Checkout = () => {
+  const { cart, region } = useShopping();
+  const [loading, setLoading] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    city: '',
+    postal_code: '',
+    country: region === 'India' ? 'India' : 'Canada'
+  });
+
+  const handleCheckout = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      const cartItems = cart.map(item => ({
+        product_id: item.product_id,
+        quantity: item.quantity,
+        subscription_type: item.subscription_type
+      }));
+
+      const response = await axios.post(`${API}/payments/checkout`, {
+        cart_items: cartItems,
+        delivery_address: deliveryAddress,
+        region: region,
+        user_email: deliveryAddress.email
+      });
+
+      // Handle payment gateway redirection
+      if (response.data.checkout_url) {
+        // Stripe checkout
+        window.location.href = response.data.checkout_url;
+      } else if (response.data.payment_gateway === 'razorpay') {
+        // Razorpay checkout
+        alert('Razorpay integration would be implemented here for India payments');
+      }
+    } catch (error) {
+      console.error('Checkout error:', error);
+      alert('Checkout error: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (cart.length === 0) {
+    return (
+      <motion.div className="checkout-page">
+        <div className="empty-cart">
+          <h2>Your cart is empty</h2>
+          <Link to="/products" className="continue-shopping-btn">
+            Continue Shopping
+          </Link>
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div 
+      className="checkout-page"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+    >
+      <h1 className="checkout-title">Secure Checkout</h1>
+      
+      <form onSubmit={handleCheckout} className="checkout-form">
+        <div className="delivery-details">
+          <h3>Delivery Information</h3>
+          
+          <div className="form-group">
+            <label>Full Name</label>
+            <input
+              type="text"
+              value={deliveryAddress.name}
+              onChange={(e) => setDeliveryAddress({...deliveryAddress, name: e.target.value})}
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>Email</label>
+            <input
+              type="email"
+              value={deliveryAddress.email}
+              onChange={(e) => setDeliveryAddress({...deliveryAddress, email: e.target.value})}
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>Phone</label>
+            <input
+              type="tel"
+              value={deliveryAddress.phone}
+              onChange={(e) => setDeliveryAddress({...deliveryAddress, phone: e.target.value})}
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>Address</label>
+            <textarea
+              value={deliveryAddress.address}
+              onChange={(e) => setDeliveryAddress({...deliveryAddress, address: e.target.value})}
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>City</label>
+            <input
+              type="text"
+              value={deliveryAddress.city}
+              onChange={(e) => setDeliveryAddress({...deliveryAddress, city: e.target.value})}
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>Postal Code</label>
+            <input
+              type="text"
+              value={deliveryAddress.postal_code}
+              onChange={(e) => setDeliveryAddress({...deliveryAddress, postal_code: e.target.value})}
+              required
+            />
+          </div>
+        </div>
+        
+        <motion.button 
+          type="submit" 
+          disabled={loading}
+          className="checkout-btn large"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          {loading ? 'Processing...' : `Proceed to Payment (${region})`}
+        </motion.button>
+      </form>
+    </motion.div>
+  );
+};
+
+// NEW: Order Confirmation Component  
+const OrderConfirmation = () => {
+  const [loading, setLoading] = useState(true);
+  const [orderStatus, setOrderStatus] = useState(null);
+  
+  useEffect(() => {
+    // Simulate order confirmation check
+    setTimeout(() => {
+      setOrderStatus({
+        success: true,
+        orderNumber: 'FL' + Math.random().toString().substr(2, 8),
+        message: 'Your order has been confirmed!'
+      });
+      setLoading(false);
+    }, 2000);
+  }, []);
+
+  if (loading) {
+    return (
+      <motion.div className="order-confirmation-page">
+        <div className="loading">Processing your order...</div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div 
+      className="order-confirmation-page"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+    >
+      <div className="confirmation-content">
+        <h1>🎉 Order Confirmed!</h1>
+        <p>Thank you for choosing Flint & Flours!</p>
+        <div className="order-details">
+          <p><strong>Order Number:</strong> {orderStatus?.orderNumber}</p>
+          <p>You will receive an email confirmation shortly.</p>
+        </div>
+        <Link to="/products" className="continue-shopping-btn">
+          Continue Shopping
+        </Link>
+      </div>
+    </motion.div>
+  );
+};
+
 const Cart = () => {
   const { cart, region, updateCartQuantity, removeFromCart } = useShopping();
   const [cartCalculation, setCartCalculation] = useState(null);
