@@ -2,10 +2,16 @@ import requests
 import json
 import time
 import uuid
+import os
 from datetime import datetime
 
-# Get the backend URL from the frontend .env file
-BACKEND_URL = "https://efec0222-8474-4994-9db8-11dd2f25715f.preview.emergentagent.com"
+# Read the backend URL from the frontend .env file
+with open('/app/frontend/.env', 'r') as f:
+    for line in f:
+        if line.startswith('REACT_APP_BACKEND_URL='):
+            BACKEND_URL = line.strip().split('=')[1]
+            break
+
 API_URL = f"{BACKEND_URL}/api"
 
 # Test data
