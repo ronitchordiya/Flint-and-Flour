@@ -1377,6 +1377,160 @@ async def initialize_sample_data():
             "subscription_eligible": True,
             "ingredients": ["Organic wheat", "Natural yeast", "Olive oil", "Honey", "Himalayan salt"],
             "bakers_notes": "Shaped by hand and baked in our wood-fired oven for that authentic rustic flavor."
+        },
+        
+        # MORE COOKIES
+        {
+            "name": "Mix Nut Cookies",
+            "description": "Cookies packed with assorted nuts for the perfect crunch.",
+            "category": "cookies",
+            "base_price": 230.0,
+            "image_url": "https://images.unsplash.com/photo-1485893086445-ed75865251e0",
+            "subscription_eligible": True,
+            "ingredients": ["Flour", "Mixed nuts", "Butter", "Sugar", "Vanilla"],
+            "bakers_notes": "200g pack with almonds, cashews, and walnuts."
+        },
+        {
+            "name": "Coconut Cookies",
+            "description": "Tropical coconut cookies with rich coconut flavor.",
+            "category": "cookies",
+            "base_price": 230.0,
+            "image_url": "https://images.unsplash.com/photo-1485893086445-ed75865251e0",
+            "subscription_eligible": True,
+            "ingredients": ["Flour", "Coconut", "Butter", "Sugar", "Eggs"],
+            "bakers_notes": "200g pack. Made with fresh coconut."
+        },
+        {
+            "name": "Red Velvet Cookies",
+            "description": "Rich red velvet cookies with cream cheese flavor.",
+            "category": "cookies",
+            "base_price": 230.0,
+            "image_url": "https://images.unsplash.com/photo-1485893086445-ed75865251e0",
+            "subscription_eligible": True,
+            "ingredients": ["Flour", "Cocoa", "Red coloring", "Cream cheese", "Butter"],
+            "bakers_notes": "200g pack. Classic red velvet taste."
+        },
+        
+        # MORE MUFFINS
+        {
+            "name": "Vanilla Muffins",
+            "description": "Classic vanilla muffins, light and fluffy.",
+            "category": "cakes",
+            "base_price": 80.0,
+            "image_url": "https://images.unsplash.com/photo-1607958996333-41aef7caefaa",
+            "subscription_eligible": False,
+            "ingredients": ["Flour", "Vanilla", "Eggs", "Milk", "Butter"],
+            "bakers_notes": "120g each. Simple and delicious."
+        },
+        {
+            "name": "Almond Muffins",
+            "description": "Delicate almond-flavored muffins with crunchy almonds.",
+            "category": "cakes",
+            "base_price": 100.0,
+            "image_url": "https://images.unsplash.com/photo-1607958996333-41aef7caefaa",
+            "subscription_eligible": False,
+            "ingredients": ["Almond flour", "Almonds", "Eggs", "Milk", "Butter"],
+            "bakers_notes": "120g each. Premium almond flavor."
+        },
+        
+        # BAR CAKES
+        {
+            "name": "Choco Chip Bar Cake",
+            "description": "Moist bar cake loaded with chocolate chips.",
+            "category": "cakes",
+            "base_price": 300.0,
+            "image_url": "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9",
+            "subscription_eligible": False,
+            "ingredients": ["Flour", "Chocolate chips", "Eggs", "Butter", "Sugar"],
+            "bakers_notes": "300g bar cake. Perfect for sharing."
+        },
+        {
+            "name": "Banana Walnut Bar Cake",
+            "description": "Classic banana walnut combination in bar cake form.",
+            "category": "cakes",
+            "base_price": 300.0,
+            "image_url": "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9",
+            "subscription_eligible": False,
+            "ingredients": ["Bananas", "Walnuts", "Flour", "Eggs", "Butter"],
+            "bakers_notes": "300g with fresh bananas and premium walnuts."
+        },
+        
+        # MORE CAKES
+        {
+            "name": "Pineapple Cake",
+            "description": "Fresh pineapple cake with tropical flavors.",
+            "category": "cakes",
+            "base_price": 950.0,
+            "image_url": "https://images.pexels.com/photos/291528/pexels-photo-291528.jpeg",
+            "subscription_eligible": False,
+            "ingredients": ["Fresh pineapple", "Flour", "Eggs", "Cream", "Sugar"],
+            "bakers_notes": "500g cake with real pineapple pieces."
+        },
+        {
+            "name": "Baked Cheese Cake",
+            "description": "Classic New York style baked cheesecake.",
+            "category": "cakes",
+            "base_price": 1300.0,
+            "image_url": "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9",
+            "subscription_eligible": False,
+            "ingredients": ["Cream cheese", "Eggs", "Graham crackers", "Butter", "Sugar"],
+            "bakers_notes": "500g authentic New York recipe."
+        },
+        
+        # MORE BREADS
+        {
+            "name": "Mini Pizza",
+            "description": "Mini pizza bases perfect for party snacks.",
+            "category": "breads",
+            "base_price": 150.0,
+            "image_url": "https://images.unsplash.com/photo-1513104890138-7c749659a591",
+            "subscription_eligible": False,
+            "ingredients": ["Refined flour", "Yeast", "Olive oil", "Salt"],
+            "bakers_notes": "240g (4 inch diameter, 6 pc): ₹150"
+        },
+        {
+            "name": "Bagels",
+            "description": "Traditional bagels with perfect chewy texture.",
+            "category": "breads",
+            "base_price": 200.0,
+            "image_url": "https://images.unsplash.com/photo-1555507036-ab794f4ade50",
+            "subscription_eligible": False,
+            "ingredients": ["Bread flour", "Yeast", "Malt", "Salt", "Water"],
+            "bakers_notes": "200g (2 pc): ₹200. Boiled then baked."
+        },
+        
+        # SNACKS
+        {
+            "name": "Jowar Masala Khakra",
+            "description": "Crispy jowar khakra with traditional masala spices.",
+            "category": "snacks",
+            "base_price": 175.0,
+            "image_url": "https://images.unsplash.com/photo-1606491956689-2ea866880c84",
+            "subscription_eligible": True,
+            "ingredients": ["Jowar flour", "Spices", "Oil", "Salt"],
+            "bakers_notes": "250g pack. Traditional Gujarat recipe."
+        },
+        {
+            "name": "Yellow Banana Chips",
+            "description": "Crispy banana chips made from fresh bananas.",
+            "category": "snacks",
+            "base_price": 180.0,
+            "image_url": "https://images.unsplash.com/photo-1606491956689-2ea866880c84",
+            "subscription_eligible": True,
+            "ingredients": ["Raw bananas", "Coconut oil", "Salt"],
+            "bakers_notes": "200g pack. Kerala-style preparation."
+        },
+        
+        # MORE QUICK BITES
+        {
+            "name": "Dabeli",
+            "description": "Kutchi dabeli with sweet and tangy flavors.",
+            "category": "snacks",
+            "base_price": 60.0,
+            "image_url": "https://images.unsplash.com/photo-1606491956689-2ea866880c84",
+            "subscription_eligible": False,
+            "ingredients": ["Pav", "Potatoes", "Chutneys", "Sev", "Pomegranate"],
+            "bakers_notes": "Per piece: ₹60, with chutney: ₹70"
         }
     ]
     
