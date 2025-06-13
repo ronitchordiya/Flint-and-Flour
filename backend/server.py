@@ -1184,7 +1184,9 @@ async def initialize_sample_data():
             "category": "breads",
             "base_price": 150.0,
             "image_url": "https://images.pexels.com/photos/745988/pexels-photo-745988.jpeg",
-            "subscription_eligible": True
+            "subscription_eligible": True,
+            "ingredients": ["Sourdough starter", "Stone-ground flour", "Sea salt", "Filtered water"],
+            "bakers_notes": "Our starter is over 50 years old, inherited from a French baker. Fermented for 18 hours for complex flavors."
         },
         {
             "name": "Fresh Bakery Assortment",
