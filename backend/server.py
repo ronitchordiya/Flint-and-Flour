@@ -1123,80 +1123,244 @@ async def initialize_sample_data():
         )
         await db.users.insert_one(admin_user.dict())
     
-    # Sample products data
+    # Real Flint & Flours Products
     sample_products = [
-        # Cookies
+        # SLICE BREADS
         {
-            "name": "Artisan Chocolate Chip Cookies",
-            "description": "Hand-crafted chocolate chip cookies made with premium Belgian chocolate and organic flour",
-            "category": "cookies",
-            "base_price": 250.0,
-            "image_url": "https://images.unsplash.com/photo-1590080874088-eec64895b423",
-            "subscription_eligible": False,
-            "ingredients": ["Organic flour", "Belgian chocolate chips", "Farm butter", "Brown sugar", "Vanilla extract"],
-            "bakers_notes": "Each cookie is hand-rolled and baked in small batches. The secret is in our 24-hour dough fermentation process."
-        },
-        {
-            "name": "Handmade Butter Cookies",
-            "description": "Traditional butter cookies made fresh daily with authentic artisan techniques",
-            "category": "cookies", 
-            "base_price": 200.0,
-            "image_url": "https://images.pexels.com/photos/6996299/pexels-photo-6996299.jpeg",
-            "subscription_eligible": True,
-            "ingredients": ["Premium butter", "Pastry flour", "Powdered sugar", "Sea salt", "Vanilla beans"],
-            "bakers_notes": "Made with French technique using cultured butter for that distinctive tangy flavor."
-        },
-        # Cakes
-        {
-            "name": "Premium Chocolate Layer Cake",
-            "description": "Rich, moist chocolate cake with layers of premium cocoa and silky ganache",
-            "category": "cakes",
-            "base_price": 800.0,
-            "image_url": "https://images.pexels.com/photos/291528/pexels-photo-291528.jpeg",
-            "subscription_eligible": True,
-            "ingredients": ["Dark chocolate 70%", "Farm eggs", "Organic flour", "Fresh cream", "Dutch cocoa"],
-            "bakers_notes": "Our signature cake takes 6 hours to prepare, with each layer baked separately for perfect texture."
-        },
-        {
-            "name": "Elegant Pink Drip Cake",
-            "description": "Sophisticated pink-themed cake with artistic drip design, perfect for celebrations",
-            "category": "cakes",
-            "base_price": 1200.0,
-            "image_url": "https://images.unsplash.com/photo-1621303837174-89787a7d4729",
-            "subscription_eligible": False,
-            "ingredients": ["Vanilla sponge", "Swiss meringue", "Natural pink coloring", "White chocolate", "Raspberry coulis"],
-            "bakers_notes": "Each drip is carefully crafted by hand. Available in custom colors for special occasions."
-        },
-        {
-            "name": "Classic Wedding Cake",
-            "description": "Beautiful multi-tier white cake with elegant design, customizable for special occasions",
-            "category": "cakes",
-            "base_price": 1500.0,
-            "image_url": "https://images.pexels.com/photos/265801/pexels-photo-265801.jpeg",
-            "subscription_eligible": False,
-            "ingredients": ["Almond flour", "Fresh cream", "Royal icing", "Vanilla pods", "Edible flowers"],
-            "bakers_notes": "Each tier can be customized with different flavors. Please order 48 hours in advance."
-        },
-        # Breads
-        {
-            "name": "Rustic Artisan Sourdough",
-            "description": "Traditional sourdough bread with crispy crust and soft, airy interior",
+            "name": "Jowar Bread",
+            "description": "Nutritious jowar bread, perfect for daily consumption. Available in 500g and 240g sizes.",
             "category": "breads",
-            "base_price": 150.0,
-            "image_url": "https://images.pexels.com/photos/745988/pexels-photo-745988.jpeg",
-            "subscription_eligible": True,
-            "ingredients": ["Sourdough starter", "Stone-ground flour", "Sea salt", "Filtered water"],
-            "bakers_notes": "Our starter is over 50 years old, inherited from a French baker. Fermented for 18 hours for complex flavors."
-        },
-        {
-            "name": "Fresh Bakery Assortment",
-            "description": "Daily selection of fresh artisan breads including whole wheat, multigrain, and rye",
-            "category": "breads",
-            "base_price": 300.0,
+            "base_price": 150.0,  # 500g price
             "image_url": "https://images.unsplash.com/photo-1509440159596-0249088772ff",
             "subscription_eligible": True,
-            "ingredients": ["Variety of ancient grains", "Seeds", "Nuts", "Natural yeast", "Stone-ground flour"],
-            "bakers_notes": "The selection changes daily based on seasonal availability. Perfect for those who love variety."
+            "ingredients": ["Jowar flour", "Yeast", "Salt", "Water", "Natural preservatives"],
+            "bakers_notes": "Made with premium jowar flour. 500g: ₹150, 240g: ₹80. Great source of protein and fiber."
+        },
+        {
+            "name": "Multigrain Bread",
+            "description": "Healthy blend of jowar, bajra, and nachni. Packed with nutrients and flavor.",
+            "category": "breads",
+            "base_price": 155.0,  # 500g price
+            "image_url": "https://images.unsplash.com/photo-1586444248902-2f64eddc13df",
+            "subscription_eligible": True,
+            "ingredients": ["Jowar flour", "Bajra flour", "Nachni flour", "Yeast", "Salt", "Water"],
+            "bakers_notes": "Power-packed with three ancient grains. 500g: ₹155, 240g: ₹85"
+        },
+        {
+            "name": "Oats Bread",
+            "description": "Wholesome combination of oats and jowar for a heart-healthy option.",
+            "category": "breads",
+            "base_price": 175.0,  # 500g price
+            "image_url": "https://images.unsplash.com/photo-1509440159596-0249088772ff",
+            "subscription_eligible": True,
+            "ingredients": ["Oats", "Jowar flour", "Yeast", "Salt", "Water"],
+            "bakers_notes": "Rich in fiber and beta-glucan. 500g: ₹175, 240g: ₹92"
+        },
+        {
+            "name": "High Protein Bread",
+            "description": "Protein-rich bread with sprouted moong and jowar for health enthusiasts.",
+            "category": "breads",
+            "base_price": 175.0,  # 500g price
+            "image_url": "https://images.unsplash.com/photo-1509440159596-0249088772ff",
+            "subscription_eligible": True,
+            "ingredients": ["Sprouted moong", "Jowar flour", "Yeast", "Salt", "Water"],
+            "bakers_notes": "Perfect for fitness enthusiasts. 500g: ₹175, 240g: ₹92"
+        },
+        {
+            "name": "Quinoa Bread",
+            "description": "Premium quinoa bread with complete protein profile and exceptional taste.",
+            "category": "breads",
+            "base_price": 200.0,  # 500g price
+            "image_url": "https://images.unsplash.com/photo-1509440159596-0249088772ff",
+            "subscription_eligible": True,
+            "ingredients": ["Quinoa flour", "Whole wheat flour", "Yeast", "Salt", "Water"],
+            "bakers_notes": "Superfood bread with all 9 essential amino acids. 500g: ₹200, 240g: ₹110"
+        },
+        
+        # OTHER BREADS
+        {
+            "name": "Pizza Base",
+            "description": "Fresh pizza base ready for your favorite toppings. 8 inch diameter, 2 pieces.",
+            "category": "breads",
+            "base_price": 100.0,
+            "image_url": "https://images.unsplash.com/photo-1513104890138-7c749659a591",
+            "subscription_eligible": False,
+            "ingredients": ["Refined flour", "Yeast", "Olive oil", "Salt", "Sugar"],
+            "bakers_notes": "Hand-stretched dough. 140g (8 inch, 2 pc): ₹100"
+        },
+        {
+            "name": "Pav (Dinner Rolls)",
+            "description": "Soft and fluffy dinner rolls, perfect for vada pav or sandwiches.",
+            "category": "breads",
+            "base_price": 105.0,  # 440g price
+            "image_url": "https://images.unsplash.com/photo-1549931319-a545dcf3bc73",
+            "subscription_eligible": True,
+            "ingredients": ["Refined flour", "Yeast", "Milk", "Butter", "Sugar", "Salt"],
+            "bakers_notes": "Mumbai-style soft pav. 440g (8 pc): ₹105, 220g (4 pc): ₹60"
+        },
+        {
+            "name": "Burger Buns",
+            "description": "Artisan burger buns available in plain, seeded, herb, and garlic varieties.",
+            "category": "breads",
+            "base_price": 100.0,
+            "image_url": "https://images.unsplash.com/photo-1571091718767-18b5b1457add",
+            "subscription_eligible": False,
+            "ingredients": ["Refined flour", "Yeast", "Eggs", "Butter", "Sesame seeds"],
+            "bakers_notes": "140g (2 pc): ₹100. Available in plain/seeded/herb/garlic"
+        },
+        {
+            "name": "Sourdough Bread",
+            "description": "Traditional sourdough with tangy flavor and perfect crust. Plain, seeded, or jalapeño.",
+            "category": "breads",
+            "base_price": 400.0,  # 500g price
+            "image_url": "https://images.pexels.com/photos/745988/pexels-photo-745988.jpeg",
+            "subscription_eligible": True,
+            "ingredients": ["Sourdough starter", "Flour", "Water", "Salt"],
+            "bakers_notes": "Fermented for 24 hours. 500g: ₹400, 300g: ₹240"
+        },
+        
+        # KULCHAS
+        {
+            "name": "Amritsari Kulcha",
+            "description": "Authentic Amritsari-style kulcha with traditional filling and flavors.",
+            "category": "breads", 
+            "base_price": 170.0,
+            "image_url": "https://images.unsplash.com/photo-1626132647523-66f6bf7add1e",
+            "subscription_eligible": False,
+            "ingredients": ["Refined flour", "Yogurt", "Potato filling", "Spices", "Onions"],
+            "bakers_notes": "Authentic Punjab recipe. 220g (2 pc): ₹170"
+        },
+        
+        # COOKIES
+        {
+            "name": "Choco Chunk Cookies",
+            "description": "Rich chocolate chunk cookies made with premium chocolate pieces.",
+            "category": "cookies",
+            "base_price": 230.0,
+            "image_url": "https://images.unsplash.com/photo-1590080874088-eec64895b423",
+            "subscription_eligible": True,
+            "ingredients": ["Flour", "Butter", "Chocolate chunks", "Brown sugar", "Eggs"],
+            "bakers_notes": "200g pack. Hand-rolled and baked fresh daily."
+        },
+        {
+            "name": "Cranberry Pistachio Cookies",
+            "description": "Delightful combination of tangy cranberries and crunchy pistachios.",
+            "category": "cookies",
+            "base_price": 230.0,
+            "image_url": "https://images.unsplash.com/photo-1558961363-fa8fdf82db35",
+            "subscription_eligible": True,
+            "ingredients": ["Flour", "Butter", "Dried cranberries", "Pistachios", "Sugar"],
+            "bakers_notes": "200g pack. Perfect balance of sweet and tart flavors."
+        },
+        {
+            "name": "Almond Crunch Cookies",
+            "description": "Crunchy cookies loaded with premium almonds for that perfect bite.",
+            "category": "cookies",
+            "base_price": 230.0,
+            "image_url": "https://images.unsplash.com/photo-1485893086445-ed75865251e0",
+            "subscription_eligible": True,
+            "ingredients": ["Flour", "Butter", "Almonds", "Brown sugar", "Vanilla"],
+            "bakers_notes": "200g pack. Made with California almonds."
+        },
+        
+        # MUFFINS
+        {
+            "name": "Choco Chip Muffins",
+            "description": "Fluffy muffins studded with chocolate chips, perfect for breakfast or snacking.",
+            "category": "cakes",
+            "base_price": 100.0,
+            "image_url": "https://images.unsplash.com/photo-1607958996333-41aef7caefaa",
+            "subscription_eligible": False,
+            "ingredients": ["Flour", "Chocolate chips", "Eggs", "Milk", "Butter", "Sugar"],
+            "bakers_notes": "120g each. Baked fresh every morning."
+        },
+        {
+            "name": "Blueberry Muffins",
+            "description": "Soft, moist muffins bursting with fresh blueberries and citrus notes.",
+            "category": "cakes",
+            "base_price": 100.0,
+            "image_url": "https://images.unsplash.com/photo-1607958996333-41aef7caefaa",
+            "subscription_eligible": False,
+            "ingredients": ["Flour", "Fresh blueberries", "Eggs", "Milk", "Lemon zest"],
+            "bakers_notes": "120g each. Made with imported blueberries."
+        },
+        
+        # CAKES
+        {
+            "name": "Chocolate Cake",
+            "description": "Rich, decadent chocolate cake made with premium cocoa and layered with ganache.",
+            "category": "cakes",
+            "base_price": 1300.0,
+            "image_url": "https://images.pexels.com/photos/291528/pexels-photo-291528.jpeg",
+            "subscription_eligible": False,
+            "ingredients": ["Premium cocoa", "Dark chocolate", "Eggs", "Flour", "Fresh cream"],
+            "bakers_notes": "500g cake. Order 24 hours in advance."
+        },
+        {
+            "name": "Tiramisu Cake",
+            "description": "Classic Italian tiramisu with finger cookies, coffee, and mascarpone layers.",
+            "category": "cakes",
+            "base_price": 1500.0,
+            "image_url": "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9",
+            "subscription_eligible": False,
+            "ingredients": ["Mascarpone", "Finger cookies", "Coffee", "Cocoa powder", "Eggs"],
+            "bakers_notes": "500g with finger cookies. Authentic Italian recipe."
+        },
+        
+        # CROISSANTS
+        {
+            "name": "Plain Croissants",
+            "description": "Classic French croissants with buttery, flaky layers and golden crust.",
+            "category": "breads",
+            "base_price": 170.0,
+            "image_url": "https://images.unsplash.com/photo-1555507036-ab794f4ade50",
+            "subscription_eligible": False,
+            "ingredients": ["Flour", "Butter", "Yeast", "Milk", "Eggs", "Salt"],
+            "bakers_notes": "70g each. Laminated dough with 81 layers."
+        },
+        {
+            "name": "Chocolate Croissants",
+            "description": "French croissants filled with rich chocolate, perfect for breakfast treats.",
+            "category": "breads",
+            "base_price": 200.0,
+            "image_url": "https://images.unsplash.com/photo-1555507036-ab794f4ade50",
+            "subscription_eligible": False,
+            "ingredients": ["Flour", "Butter", "Dark chocolate", "Yeast", "Milk", "Eggs"],
+            "bakers_notes": "90g each. Pain au chocolat style with premium chocolate."
+        },
+        
+        # BROWNIES
+        {
+            "name": "Classic Brownies",
+            "description": "Fudgy, rich brownies with the perfect balance of chocolate and sweetness.",
+            "category": "cakes",
+            "base_price": 100.0,
+            "image_url": "https://images.unsplash.com/photo-1624353365286-3f8d62daad51",
+            "subscription_eligible": False,
+            "ingredients": ["Dark chocolate", "Butter", "Eggs", "Flour", "Cocoa powder"],
+            "bakers_notes": "90g piece. Available in plain, choco chip, walnut, and assorted varieties."
+        },
+        
+        # QUICK BITES
+        {
+            "name": "Vada Pav",
+            "description": "Mumbai's favorite street food - spiced potato fritter in soft pav with chutneys.",
+            "category": "snacks",
+            "base_price": 60.0,
+            "image_url": "https://images.unsplash.com/photo-1606491956689-2ea866880c84",
+            "subscription_eligible": False,
+            "ingredients": ["Potatoes", "Gram flour", "Spices", "Pav", "Chutneys"],
+            "bakers_notes": "Per piece: ₹60, with chutney: ₹70. Made fresh to order."
+        },
+        {
+            "name": "Mexican Puff",
+            "description": "Crispy puff pastry filled with spiced Mexican-style vegetables and beans.",
+            "category": "snacks",
+            "base_price": 60.0,
+            "image_url": "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b",
+            "subscription_eligible": False,
+            "ingredients": ["Puff pastry", "Mexican beans", "Vegetables", "Spices", "Cheese"],
+            "bakers_notes": "Per piece: ₹60, with salsa: ₹70. Baked fresh daily."
         },
         {
             "name": "Homestyle Artisan Loaves",
