@@ -139,6 +139,8 @@ class Product(BaseModel):
     image_url: str
     subscription_eligible: bool = False
     in_stock: bool = True
+    ingredients: Optional[List[str]] = Field(default_factory=list)
+    bakers_notes: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -150,6 +152,8 @@ class ProductCreate(BaseModel):
     image_url: str
     subscription_eligible: bool = False
     in_stock: bool = True
+    ingredients: Optional[List[str]] = Field(default_factory=list)
+    bakers_notes: Optional[str] = None
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
@@ -159,6 +163,8 @@ class ProductUpdate(BaseModel):
     image_url: Optional[str] = None
     subscription_eligible: Optional[bool] = None
     in_stock: Optional[bool] = None
+    ingredients: Optional[List[str]] = None
+    bakers_notes: Optional[str] = None
 
 class ProductResponse(BaseModel):
     id: str
@@ -171,6 +177,8 @@ class ProductResponse(BaseModel):
     image_url: str
     subscription_eligible: bool
     in_stock: bool
+    ingredients: List[str]
+    bakers_notes: Optional[str]
     created_at: datetime
 
 # Cart Models
