@@ -1765,6 +1765,9 @@ p {
     padding: 3rem 2rem;
   }
 }
+
+/* Responsive Design */
+@media (max-width: 1024px) {
   .hero-content {
     grid-template-columns: 1fr;
     gap: 3rem;
@@ -1777,6 +1780,24 @@ p {
   
   .products-grid {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+  
+  .product-detail-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .product-detail-image {
+    position: static;
+  }
+  
+  .checkout-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .checkout-summary {
+    position: static;
   }
 }
 
