@@ -7,13 +7,14 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, EmailStr
-from typing import List, Optional
+from typing import List, Optional, Dict
 import uuid
 from datetime import datetime, timedelta
 from passlib.context import CryptContext
 import jwt
 from jwt import PyJWTError
 import secrets
+import pytz
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -41,13 +42,30 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # Security
 security = HTTPBearer()
 
-# Define Models
+# Regional configurations
+REGION_CONFIG = {
+    "India": {
+        "currency": "INR",
+        "tax_rate": 0.18,  # 18% GST
+        "timezone": "Asia/Kolkata",
+        "exchange_rate": 1.0  # Base currency
+    },
+    "Canada": {
+        "currency": "CAD", 
+        "tax_rate": 0.13,  # 13% HST
+        "timezone": "America/Toronto",
+        "exchange_rate": 0.06  # 1 INR = 0.06 CAD (approximate)
+    }
+}
+
+# Auth Models
 class User(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     email: EmailStr
     password_hash: str
     region: str = Field(..., description="India or Canada")
     is_email_verified: bool = False
+    is_admin: bool = False
     email_verification_token: Optional[str] = None
     password_reset_token: Optional[str] = None
     password_reset_expires: Optional[datetime] = None
@@ -68,6 +86,7 @@ class UserResponse(BaseModel):
     email: str
     region: str
     is_email_verified: bool
+    is_admin: bool
     created_at: datetime
 
 class Token(BaseModel):
@@ -90,6 +109,85 @@ class PasswordResetConfirm(BaseModel):
 
 class UserUpdateProfile(BaseModel):
     region: Optional[str] = None
+
+# Product Models
+class Product(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    description: str
+    category: str = Field(..., description="cookies, cakes, breads")
+    base_price: float = Field(..., description="Price in INR")
+    image_url: str
+    subscription_eligible: bool = False
+    in_stock: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class ProductCreate(BaseModel):
+    name: str
+    description: str
+    category: str = Field(..., description="cookies, cakes, breads")
+    base_price: float = Field(..., gt=0, description="Price in INR")
+    image_url: str
+    subscription_eligible: bool = False
+    in_stock: bool = True
+
+class ProductUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    category: Optional[str] = None
+    base_price: Optional[float] = Field(None, gt=0)
+    image_url: Optional[str] = None
+    subscription_eligible: Optional[bool] = None
+    in_stock: Optional[bool] = None
+
+class ProductResponse(BaseModel):
+    id: str
+    name: str
+    description: str
+    category: str
+    base_price: float
+    regional_price: float
+    currency: str
+    image_url: str
+    subscription_eligible: bool
+    in_stock: bool
+    created_at: datetime
+
+# Cart Models
+class CartItem(BaseModel):
+    product_id: str
+    quantity: int = Field(..., gt=0)
+    subscription_type: str = Field("one-time", description="one-time, weekly, monthly")
+
+class CartItemResponse(BaseModel):
+    product_id: str
+    product_name: str
+    product_image: str
+    quantity: int
+    subscription_type: str
+    unit_price: float
+    total_price: float
+    currency: str
+
+class CartResponse(BaseModel):
+    items: List[CartItemResponse]
+    subtotal: float
+    tax: float
+    total: float
+    currency: str
+    region: str
+    delivery_message: str
+
+class CartUpdate(BaseModel):
+    items: List[CartItem]
+
+# Delivery Models
+class DeliveryInfo(BaseModel):
+    region: str
+    available_today: bool
+    message: str
+    cutoff_time: str
 
 # Utility functions
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -132,6 +230,57 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise HTTPException(status_code=401, detail="User not found")
     
     return User(**user_doc)
+
+async def get_admin_user(current_user: User = Depends(get_current_user)) -> User:
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return current_user
+
+def convert_price(base_price: float, region: str) -> float:
+    """Convert INR base price to regional currency"""
+    if region not in REGION_CONFIG:
+        return base_price
+    
+    exchange_rate = REGION_CONFIG[region]["exchange_rate"]
+    return round(base_price * exchange_rate, 2)
+
+def calculate_tax(subtotal: float, region: str) -> float:
+    """Calculate tax based on region"""
+    if region not in REGION_CONFIG:
+        return 0
+    
+    tax_rate = REGION_CONFIG[region]["tax_rate"]
+    return round(subtotal * tax_rate, 2)
+
+def get_delivery_info(region: str) -> DeliveryInfo:
+    """Get delivery availability based on regional time"""
+    if region not in REGION_CONFIG:
+        return DeliveryInfo(
+            region=region,
+            available_today=False,
+            message="Delivery not available",
+            cutoff_time="N/A"
+        )
+    
+    timezone = REGION_CONFIG[region]["timezone"]
+    regional_tz = pytz.timezone(timezone)
+    current_time = datetime.now(regional_tz)
+    cutoff_hour = 10  # 10 AM cutoff
+    
+    available_today = current_time.hour < cutoff_hour
+    cutoff_time = f"{cutoff_hour}:00 AM {timezone.split('/')[-1]} time"
+    
+    if available_today:
+        message = f"Order by {cutoff_time} for same-day delivery"
+    else:
+        message = f"Next available delivery: Tomorrow (order by {cutoff_time})"
+    
+    return DeliveryInfo(
+        region=region,
+        available_today=available_today,
+        message=message,
+        cutoff_time=cutoff_time
+    )
 
 # Auth endpoints
 @api_router.post("/auth/register", response_model=UserResponse)
@@ -306,10 +455,372 @@ async def update_profile(
     updated_user_doc = await db.users.find_one({"id": current_user.id})
     return UserResponse(**updated_user_doc)
 
+# Product endpoints
+@api_router.get("/products", response_model=List[ProductResponse])
+async def get_products(region: str = "India", category: Optional[str] = None):
+    # Validate region
+    if region not in REGION_CONFIG:
+        raise HTTPException(status_code=400, detail="Invalid region")
+    
+    # Build query
+    query = {"in_stock": True}
+    if category:
+        query["category"] = category
+    
+    # Get products from database
+    products = await db.products.find(query).to_list(1000)
+    
+    # Convert to response format with regional pricing
+    result = []
+    for product_doc in products:
+        product = Product(**product_doc)
+        regional_price = convert_price(product.base_price, region)
+        currency = REGION_CONFIG[region]["currency"]
+        
+        result.append(ProductResponse(
+            id=product.id,
+            name=product.name,
+            description=product.description,
+            category=product.category,
+            base_price=product.base_price,
+            regional_price=regional_price,
+            currency=currency,
+            image_url=product.image_url,
+            subscription_eligible=product.subscription_eligible,
+            in_stock=product.in_stock,
+            created_at=product.created_at
+        ))
+    
+    return result
+
+@api_router.get("/products/{product_id}", response_model=ProductResponse)
+async def get_product(product_id: str, region: str = "India"):
+    # Validate region
+    if region not in REGION_CONFIG:
+        raise HTTPException(status_code=400, detail="Invalid region")
+    
+    # Get product from database
+    product_doc = await db.products.find_one({"id": product_id})
+    if not product_doc:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    product = Product(**product_doc)
+    regional_price = convert_price(product.base_price, region)
+    currency = REGION_CONFIG[region]["currency"]
+    
+    return ProductResponse(
+        id=product.id,
+        name=product.name,
+        description=product.description,
+        category=product.category,
+        base_price=product.base_price,
+        regional_price=regional_price,
+        currency=currency,
+        image_url=product.image_url,
+        subscription_eligible=product.subscription_eligible,
+        in_stock=product.in_stock,
+        created_at=product.created_at
+    )
+
+# Cart endpoints
+@api_router.post("/cart", response_model=CartResponse)
+async def calculate_cart(cart_data: CartUpdate, region: str = "India"):
+    # Validate region
+    if region not in REGION_CONFIG:
+        raise HTTPException(status_code=400, detail="Invalid region")
+    
+    # Get products for cart items
+    product_ids = [item.product_id for item in cart_data.items]
+    products = await db.products.find({"id": {"$in": product_ids}}).to_list(1000)
+    
+    if len(products) != len(product_ids):
+        raise HTTPException(status_code=404, detail="One or more products not found")
+    
+    # Build product lookup
+    product_lookup = {p["id"]: Product(**p) for p in products}
+    
+    # Calculate cart items
+    cart_items = []
+    subtotal = 0
+    currency = REGION_CONFIG[region]["currency"]
+    
+    for item in cart_data.items:
+        product = product_lookup[item.product_id]
+        
+        # Check subscription eligibility
+        if item.subscription_type != "one-time" and not product.subscription_eligible:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Product {product.name} is not eligible for subscriptions"
+            )
+        
+        unit_price = convert_price(product.base_price, region)
+        total_price = unit_price * item.quantity
+        subtotal += total_price
+        
+        cart_items.append(CartItemResponse(
+            product_id=item.product_id,
+            product_name=product.name,
+            product_image=product.image_url,
+            quantity=item.quantity,
+            subscription_type=item.subscription_type,
+            unit_price=unit_price,
+            total_price=total_price,
+            currency=currency
+        ))
+    
+    # Calculate tax and total
+    tax = calculate_tax(subtotal, region)
+    total = subtotal + tax
+    
+    # Get delivery info
+    delivery = get_delivery_info(region)
+    
+    return CartResponse(
+        items=cart_items,
+        subtotal=round(subtotal, 2),
+        tax=round(tax, 2),
+        total=round(total, 2),
+        currency=currency,
+        region=region,
+        delivery_message=delivery.message
+    )
+
+# Delivery endpoint
+@api_router.get("/delivery", response_model=DeliveryInfo)
+async def get_delivery_availability(region: str = "India"):
+    return get_delivery_info(region)
+
+# Admin endpoints
+@api_router.post("/admin/products", response_model=ProductResponse)
+async def create_product(
+    product_data: ProductCreate,
+    admin_user: User = Depends(get_admin_user)
+):
+    # Validate category
+    valid_categories = ["cookies", "cakes", "breads"]
+    if product_data.category not in valid_categories:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Category must be one of: {', '.join(valid_categories)}"
+        )
+    
+    # Create product
+    product = Product(**product_data.dict())
+    
+    # Save to database
+    await db.products.insert_one(product.dict())
+    
+    # Return with regional pricing (using India as default)
+    regional_price = convert_price(product.base_price, "India")
+    
+    return ProductResponse(
+        id=product.id,
+        name=product.name,
+        description=product.description,
+        category=product.category,
+        base_price=product.base_price,
+        regional_price=regional_price,
+        currency="INR",
+        image_url=product.image_url,
+        subscription_eligible=product.subscription_eligible,
+        in_stock=product.in_stock,
+        created_at=product.created_at
+    )
+
+@api_router.put("/admin/products/{product_id}", response_model=ProductResponse)
+async def update_product(
+    product_id: str,
+    product_data: ProductUpdate,
+    admin_user: User = Depends(get_admin_user)
+):
+    # Check if product exists
+    existing_product = await db.products.find_one({"id": product_id})
+    if not existing_product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    # Validate category if provided
+    if product_data.category:
+        valid_categories = ["cookies", "cakes", "breads"]
+        if product_data.category not in valid_categories:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Category must be one of: {', '.join(valid_categories)}"
+            )
+    
+    # Update product
+    update_data = {k: v for k, v in product_data.dict().items() if v is not None}
+    update_data["updated_at"] = datetime.utcnow()
+    
+    await db.products.update_one(
+        {"id": product_id},
+        {"$set": update_data}
+    )
+    
+    # Return updated product
+    updated_product_doc = await db.products.find_one({"id": product_id})
+    product = Product(**updated_product_doc)
+    regional_price = convert_price(product.base_price, "India")
+    
+    return ProductResponse(
+        id=product.id,
+        name=product.name,
+        description=product.description,
+        category=product.category,
+        base_price=product.base_price,
+        regional_price=regional_price,
+        currency="INR",
+        image_url=product.image_url,
+        subscription_eligible=product.subscription_eligible,
+        in_stock=product.in_stock,
+        created_at=product.created_at
+    )
+
+@api_router.delete("/admin/products/{product_id}")
+async def delete_product(
+    product_id: str,
+    admin_user: User = Depends(get_admin_user)
+):
+    # Check if product exists
+    existing_product = await db.products.find_one({"id": product_id})
+    if not existing_product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    # Delete product
+    await db.products.delete_one({"id": product_id})
+    
+    return {"message": "Product deleted successfully"}
+
+@api_router.get("/admin/products", response_model=List[ProductResponse])
+async def get_all_products_admin(admin_user: User = Depends(get_admin_user)):
+    # Get all products (including out of stock)
+    products = await db.products.find().to_list(1000)
+    
+    # Convert to response format
+    result = []
+    for product_doc in products:
+        product = Product(**product_doc)
+        regional_price = convert_price(product.base_price, "India")
+        
+        result.append(ProductResponse(
+            id=product.id,
+            name=product.name,
+            description=product.description,
+            category=product.category,
+            base_price=product.base_price,
+            regional_price=regional_price,
+            currency="INR",
+            image_url=product.image_url,
+            subscription_eligible=product.subscription_eligible,
+            in_stock=product.in_stock,
+            created_at=product.created_at
+        ))
+    
+    return result
+
 # Health check endpoint
 @api_router.get("/health")
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.utcnow()}
+
+# Initialize sample data
+@api_router.post("/init-data")
+async def initialize_sample_data():
+    """Initialize sample products and admin user"""
+    
+    # Create admin user if doesn't exist
+    admin_email = "admin@flintandflours.com"
+    existing_admin = await db.users.find_one({"email": admin_email})
+    
+    if not existing_admin:
+        admin_user = User(
+            email=admin_email,
+            password_hash=get_password_hash("admin123"),
+            region="India",
+            is_admin=True,
+            is_email_verified=True
+        )
+        await db.users.insert_one(admin_user.dict())
+    
+    # Sample products data
+    sample_products = [
+        # Cookies
+        {
+            "name": "Artisan Chocolate Chip Cookies",
+            "description": "Hand-crafted chocolate chip cookies made with premium Belgian chocolate and organic flour",
+            "category": "cookies",
+            "base_price": 250.0,
+            "image_url": "https://images.unsplash.com/photo-1590080874088-eec64895b423",
+            "subscription_eligible": False
+        },
+        {
+            "name": "Handmade Butter Cookies",
+            "description": "Traditional butter cookies made fresh daily with authentic artisan techniques",
+            "category": "cookies", 
+            "base_price": 200.0,
+            "image_url": "https://images.pexels.com/photos/6996299/pexels-photo-6996299.jpeg",
+            "subscription_eligible": True
+        },
+        # Cakes
+        {
+            "name": "Premium Chocolate Layer Cake",
+            "description": "Rich, moist chocolate cake with layers of premium cocoa and silky ganache",
+            "category": "cakes",
+            "base_price": 800.0,
+            "image_url": "https://images.pexels.com/photos/291528/pexels-photo-291528.jpeg",
+            "subscription_eligible": True
+        },
+        {
+            "name": "Elegant Pink Drip Cake",
+            "description": "Sophisticated pink-themed cake with artistic drip design, perfect for celebrations",
+            "category": "cakes",
+            "base_price": 1200.0,
+            "image_url": "https://images.unsplash.com/photo-1621303837174-89787a7d4729",
+            "subscription_eligible": False
+        },
+        {
+            "name": "Classic Wedding Cake",
+            "description": "Beautiful multi-tier white cake with elegant design, customizable for special occasions",
+            "category": "cakes",
+            "base_price": 1500.0,
+            "image_url": "https://images.pexels.com/photos/265801/pexels-photo-265801.jpeg",
+            "subscription_eligible": False
+        },
+        # Breads
+        {
+            "name": "Rustic Artisan Sourdough",
+            "description": "Traditional sourdough bread with crispy crust and soft, airy interior",
+            "category": "breads",
+            "base_price": 150.0,
+            "image_url": "https://images.pexels.com/photos/745988/pexels-photo-745988.jpeg",
+            "subscription_eligible": True
+        },
+        {
+            "name": "Fresh Bakery Assortment",
+            "description": "Daily selection of fresh artisan breads including whole wheat, multigrain, and rye",
+            "category": "breads",
+            "base_price": 300.0,
+            "image_url": "https://images.unsplash.com/photo-1509440159596-0249088772ff",
+            "subscription_eligible": True
+        },
+        {
+            "name": "Homestyle Artisan Loaves",
+            "description": "Handcrafted bread loaves made with traditional methods and finest ingredients",
+            "category": "breads",
+            "base_price": 180.0,
+            "image_url": "https://images.pexels.com/photos/263168/pexels-photo-263168.jpeg",
+            "subscription_eligible": True
+        }
+    ]
+    
+    # Create products if they don't exist
+    existing_products = await db.products.count_documents({})
+    if existing_products == 0:
+        for product_data in sample_products:
+            product = Product(**product_data)
+            await db.products.insert_one(product.dict())
+    
+    return {"message": "Sample data initialized successfully"}
 
 # Include the router in the main app
 app.include_router(api_router)
