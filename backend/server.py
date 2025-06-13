@@ -1194,7 +1194,9 @@ async def initialize_sample_data():
             "category": "breads",
             "base_price": 300.0,
             "image_url": "https://images.unsplash.com/photo-1509440159596-0249088772ff",
-            "subscription_eligible": True
+            "subscription_eligible": True,
+            "ingredients": ["Variety of ancient grains", "Seeds", "Nuts", "Natural yeast", "Stone-ground flour"],
+            "bakers_notes": "The selection changes daily based on seasonal availability. Perfect for those who love variety."
         },
         {
             "name": "Homestyle Artisan Loaves",
