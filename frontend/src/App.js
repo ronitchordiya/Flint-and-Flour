@@ -1112,12 +1112,13 @@ const Cart = () => {
               <p>{cartCalculation.delivery_message}</p>
             </div>
             <motion.button 
-              className="checkout-btn" 
-              disabled
+              className="checkout-btn"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              Checkout (Coming Soon)
+              <Link to="/checkout" style={{ color: 'inherit', textDecoration: 'none' }}>
+                Proceed to Checkout
+              </Link>
             </motion.button>
           </motion.div>
         </motion.div>
