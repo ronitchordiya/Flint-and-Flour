@@ -1173,7 +1173,9 @@ async def initialize_sample_data():
             "category": "cakes",
             "base_price": 1500.0,
             "image_url": "https://images.pexels.com/photos/265801/pexels-photo-265801.jpeg",
-            "subscription_eligible": False
+            "subscription_eligible": False,
+            "ingredients": ["Almond flour", "Fresh cream", "Royal icing", "Vanilla pods", "Edible flowers"],
+            "bakers_notes": "Each tier can be customized with different flavors. Please order 48 hours in advance."
         },
         # Breads
         {
