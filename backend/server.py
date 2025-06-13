@@ -1153,7 +1153,9 @@ async def initialize_sample_data():
             "category": "cakes",
             "base_price": 800.0,
             "image_url": "https://images.pexels.com/photos/291528/pexels-photo-291528.jpeg",
-            "subscription_eligible": True
+            "subscription_eligible": True,
+            "ingredients": ["Dark chocolate 70%", "Farm eggs", "Organic flour", "Fresh cream", "Dutch cocoa"],
+            "bakers_notes": "Our signature cake takes 6 hours to prepare, with each layer baked separately for perfect texture."
         },
         {
             "name": "Elegant Pink Drip Cake",
