@@ -1163,7 +1163,9 @@ async def initialize_sample_data():
             "category": "cakes",
             "base_price": 1200.0,
             "image_url": "https://images.unsplash.com/photo-1621303837174-89787a7d4729",
-            "subscription_eligible": False
+            "subscription_eligible": False,
+            "ingredients": ["Vanilla sponge", "Swiss meringue", "Natural pink coloring", "White chocolate", "Raspberry coulis"],
+            "bakers_notes": "Each drip is carefully crafted by hand. Available in custom colors for special occasions."
         },
         {
             "name": "Classic Wedding Cake",
