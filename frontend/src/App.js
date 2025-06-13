@@ -1,10 +1,32 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import './App.css';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+
+// Animation variants
+const fadeInUp = {
+  initial: { opacity: 0, y: 30 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -30 }
+};
+
+const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const scaleIn = {
+  initial: { opacity: 0, scale: 0.95 },
+  animate: { opacity: 1, scale: 1 },
+  exit: { opacity: 0, scale: 0.95 }
+};
 
 // Auth Context
 const AuthContext = createContext();
@@ -212,10 +234,15 @@ const Header = () => {
   };
 
   return (
-    <header className="header">
+    <motion.header 
+      className="header"
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+    >
       <div className="header-content">
         <Link to="/" className="logo">
-          Flint & Flours 🥖
+          Flint & Flours
         </Link>
         
         <div className="header-center">
@@ -232,7 +259,7 @@ const Header = () => {
         </div>
 
         <nav className="nav">
-          <Link to="/products" className="nav-link">Products</Link>
+          <Link to="/products" className="nav-link">Our Collection</Link>
           <Link to="/cart" className="nav-link cart-link">
             Cart ({getCartTotal()})
           </Link>
@@ -240,7 +267,7 @@ const Header = () => {
           {user ? (
             <div className="user-menu">
               <span className="user-info">
-                {user.email}
+                {user.email.split('@')[0]}
                 {user.is_email_verified ? ' ✅' : ' ⚠️'}
               </span>
               <Link to="/profile" className="nav-link">Profile</Link>
@@ -257,7 +284,7 @@ const Header = () => {
           )}
         </nav>
       </div>
-    </header>
+    </motion.header>
   );
 };
 
@@ -281,59 +308,135 @@ const Home = () => {
 
   return (
     <div className="home">
-      <div className="hero">
-        <h1>Welcome to Flint & Flours</h1>
-        <p>Artisan Baked Goods from India 🇮🇳 and Canada 🇨🇦</p>
-        
-        {deliveryInfo && (
-          <div className="delivery-banner">
-            <p className="delivery-message">{deliveryInfo.message}</p>
-          </div>
-        )}
-        
-        {user ? (
-          <div className="welcome-user">
-            <h2>Hello, {user.email}!</h2>
-            <p>Your region: <strong>{user.region}</strong></p>
-            {!user.is_email_verified && (
-              <div className="verification-notice">
-                ⚠️ Please check your email to verify your account
-              </div>
+      {/* Hero Section */}
+      <section className="hero-section">
+        <div className="hero-content">
+          <motion.div 
+            className="hero-text"
+            variants={fadeInUp}
+            initial="initial"
+            animate="animate"
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            <h1 className="hero-title">Where tradition meets artistry</h1>
+            <p className="hero-subtitle">
+              Hand-crafted with love, baked with passion. Each creation tells a story of timeless recipes 
+              and modern innovation, bringing the warmth of our bakery to your table.
+            </p>
+            
+            {deliveryInfo && (
+              <motion.div 
+                className="delivery-banner"
+                variants={scaleIn}
+                initial="initial"
+                animate="animate"
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
+                <p className="delivery-message">{deliveryInfo.message}</p>
+              </motion.div>
             )}
-            <div className="cta-buttons">
-              <Link to="/products" className="cta-button">Browse Products</Link>
+            
+            <div className="hero-buttons">
+              <Link to="/products" className="hero-cta">Explore Our Collection</Link>
+              {!user && (
+                <Link to="/register" className="hero-cta-secondary">Join Our Story</Link>
+              )}
             </div>
-          </div>
-        ) : (
-          <div className="cta">
-            <div className="cta-buttons">
-              <Link to="/products" className="cta-button">Browse Products</Link>
-              <Link to="/register" className="cta-button-secondary">Get Started</Link>
-            </div>
-          </div>
-        )}
-      </div>
-      
-      <div className="features">
-        <div className="feature-grid">
-          <div className="feature-card">
-            <h3>🍪 Artisan Cookies</h3>
-            <p>Hand-crafted cookies made with premium ingredients</p>
-          </div>
-          <div className="feature-card">
-            <h3>🎂 Premium Cakes</h3>
-            <p>Custom cakes for every celebration and occasion</p>
-          </div>
-          <div className="feature-card">
-            <h3>🍞 Fresh Breads</h3>
-            <p>Daily baked artisan breads with traditional methods</p>
-          </div>
-          <div className="feature-card">
-            <h3>🔄 Subscriptions</h3>
-            <p>Weekly and monthly delivery options available</p>
+            
+            {user && (
+              <motion.div 
+                className="welcome-user"
+                variants={fadeInUp}
+                initial="initial"
+                animate="animate"
+                transition={{ duration: 0.6, delay: 0.6 }}
+              >
+                <h3>Welcome back, {user.email.split('@')[0]}!</h3>
+                <p>Your region: <strong>{user.region}</strong></p>
+                {!user.is_email_verified && (
+                  <div className="verification-notice">
+                    <h4>⚠️ Email Verification Required</h4>
+                    <p>Please check the console logs for your email verification link.</p>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </motion.div>
+          
+          <motion.div 
+            className="hero-image"
+            variants={fadeInUp}
+            initial="initial"
+            animate="animate"
+            transition={{ duration: 0.8, delay: 0.4 }}
+          >
+            <img src="https://images.unsplash.com/photo-1555507036-ab794f4ade50?ixlib=rb-4.0.3" alt="Artisan bakery interior" />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Story Section */}
+      <motion.section 
+        className="story-section"
+        variants={fadeInUp}
+        initial="initial"
+        whileInView="animate"
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+      >
+        <div className="story-content">
+          <h2 className="story-title">Our Story</h2>
+          <p className="story-text">
+            Born from a passion for authentic flavors and artisanal techniques, Flint & Flours bridges 
+            the culinary heritage of India and Canada. Every morning, our bakers knead traditions into 
+            each loaf, whisper secrets into every pastry, and pour love into every creation.
+          </p>
+        </div>
+      </motion.section>
+
+      {/* Features Section */}
+      <motion.section 
+        className="features-section"
+        variants={staggerContainer}
+        initial="initial"
+        whileInView="animate"
+        viewport={{ once: true }}
+      >
+        <div className="features-content">
+          <motion.h2 
+            className="features-title"
+            variants={fadeInUp}
+          >
+            Crafted with Care
+          </motion.h2>
+          
+          <div className="features-grid">
+            <motion.div className="feature-card" variants={fadeInUp}>
+              <span className="feature-icon">🍪</span>
+              <h3>Artisan Cookies</h3>
+              <p>Hand-rolled and baked to perfection, each cookie carries the essence of time-honored recipes with a modern twist.</p>
+            </motion.div>
+            
+            <motion.div className="feature-card" variants={fadeInUp}>
+              <span className="feature-icon">🎂</span>
+              <h3>Celebration Cakes</h3>
+              <p>From intimate gatherings to grand celebrations, our cakes are crafted to make every moment unforgettable.</p>
+            </motion.div>
+            
+            <motion.div className="feature-card" variants={fadeInUp}>
+              <span className="feature-icon">🍞</span>
+              <h3>Artisan Breads</h3>
+              <p>Daily-baked with ancient grains and modern techniques, bringing the soul of traditional bakeries to your table.</p>
+            </motion.div>
+            
+            <motion.div className="feature-card" variants={fadeInUp}>
+              <span className="feature-icon">🔄</span>
+              <h3>Fresh Subscriptions</h3>
+              <p>Never run out of your favorites. Our subscription service ensures fresh delights delivered to your doorstep.</p>
+            </motion.div>
           </div>
         </div>
-      </div>
+      </motion.section>
     </div>
   );
 };
@@ -365,86 +468,148 @@ const Products = () => {
     addToCart(product, 1, subscriptionType);
   };
 
-  if (loading) return <div className="loading">Loading products...</div>;
+  const getCategoryTitle = (cat) => {
+    const titles = {
+      'all': 'Our Complete Collection',
+      'cookies': 'Artisan Cookies',
+      'cakes': 'Celebration Cakes', 
+      'breads': 'Fresh Breads'
+    };
+    return titles[cat] || 'Our Collection';
+  };
+
+  const getCategoryDescription = (cat) => {
+    const descriptions = {
+      'all': 'Discover our full range of handcrafted delights, each made with love and the finest ingredients.',
+      'cookies': 'Hand-rolled and baked to perfection, each cookie tells a story of tradition and taste.',
+      'cakes': 'From intimate celebrations to grand occasions, our cakes make every moment special.',
+      'breads': 'Daily-baked artisan breads that bring the warmth of our bakery to your table.'
+    };
+    return descriptions[cat] || '';
+  };
+
+  if (loading) return <div className="loading">Discovering fresh delights...</div>;
 
   return (
-    <div className="products-page">
+    <motion.div 
+      className="products-page"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+    >
       <div className="products-header">
-        <h1>Our Products</h1>
-        <div className="category-filters">
-          <button 
-            className={category === 'all' ? 'active' : ''}
-            onClick={() => setCategory('all')}
-          >
-            All Products
-          </button>
-          <button 
-            className={category === 'cookies' ? 'active' : ''}
-            onClick={() => setCategory('cookies')}
-          >
-            Cookies
-          </button>
-          <button 
-            className={category === 'cakes' ? 'active' : ''}
-            onClick={() => setCategory('cakes')}
-          >
-            Cakes
-          </button>
-          <button 
-            className={category === 'breads' ? 'active' : ''}
-            onClick={() => setCategory('breads')}
-          >
-            Breads
-          </button>
-        </div>
+        <motion.h1 
+          className="products-title"
+          variants={fadeInUp}
+          initial="initial"
+          animate="animate"
+        >
+          {getCategoryTitle(category)}
+        </motion.h1>
+        
+        <motion.p
+          variants={fadeInUp}
+          initial="initial" 
+          animate="animate"
+          transition={{ delay: 0.2 }}
+          style={{ marginBottom: '2rem', color: 'var(--soft-gray)', textAlign: 'center' }}
+        >
+          {getCategoryDescription(category)}
+        </motion.p>
+        
+        <motion.div 
+          className="category-filters"
+          variants={fadeInUp}
+          initial="initial"
+          animate="animate"
+          transition={{ delay: 0.3 }}
+        >
+          {[
+            { key: 'all', label: 'All Collections' },
+            { key: 'cookies', label: 'Cookies' },
+            { key: 'cakes', label: 'Cakes' },
+            { key: 'breads', label: 'Breads' }
+          ].map(({ key, label }) => (
+            <button 
+              key={key}
+              className={`category-filter ${category === key ? 'active' : ''}`}
+              onClick={() => setCategory(key)}
+            >
+              {label}
+            </button>
+          ))}
+        </motion.div>
       </div>
 
-      <div className="products-grid">
-        {products.map(product => (
-          <div key={product.id} className="product-card">
-            <div className="product-image">
-              <img src={product.image_url} alt={product.name} />
-              {product.subscription_eligible && (
-                <div className="subscription-badge">
-                  📅 Subscription Available
-                </div>
-              )}
-            </div>
-            <div className="product-info">
-              <h3>{product.name}</h3>
-              <p className="product-description">{product.description}</p>
-              <div className="product-price">
-                {product.regional_price.toFixed(2)} {product.currency}
-              </div>
-              <div className="product-actions">
-                <button 
-                  className="add-to-cart-btn"
-                  onClick={() => handleAddToCart(product, 'one-time')}
-                >
-                  Add to Cart
-                </button>
+      <motion.div 
+        className="products-grid"
+        variants={staggerContainer}
+        initial="initial"
+        animate="animate"
+      >
+        <AnimatePresence>
+          {products.map(product => (
+            <motion.div 
+              key={product.id} 
+              className="product-card"
+              variants={fadeInUp}
+              layout
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              whileHover={{ y: -8 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="product-image">
+                <img src={product.image_url} alt={product.name} />
                 {product.subscription_eligible && (
-                  <div className="subscription-options">
-                    <button 
-                      className="subscription-btn"
-                      onClick={() => handleAddToCart(product, 'weekly')}
-                    >
-                      Weekly
-                    </button>
-                    <button 
-                      className="subscription-btn"
-                      onClick={() => handleAddToCart(product, 'monthly')}
-                    >
-                      Monthly
-                    </button>
+                  <div className="subscription-badge">
+                    📅 Subscription Available
                   </div>
                 )}
               </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+              <div className="product-info">
+                <h3 className="product-name">{product.name}</h3>
+                <p className="product-description">{product.description}</p>
+                <div className="product-price">
+                  {product.regional_price.toFixed(2)} {product.currency}
+                </div>
+                <div className="product-actions">
+                  <motion.button 
+                    className="add-to-cart-btn"
+                    onClick={() => handleAddToCart(product, 'one-time')}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Add to Cart
+                  </motion.button>
+                  {product.subscription_eligible && (
+                    <div className="subscription-options">
+                      <motion.button 
+                        className="subscription-btn"
+                        onClick={() => handleAddToCart(product, 'weekly')}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        Weekly
+                      </motion.button>
+                      <motion.button 
+                        className="subscription-btn"
+                        onClick={() => handleAddToCart(product, 'monthly')}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        Monthly
+                      </motion.button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </motion.div>
+    </motion.div>
   );
 };
 
@@ -484,29 +649,59 @@ const Cart = () => {
 
   if (cart.length === 0) {
     return (
-      <div className="cart-page">
+      <motion.div 
+        className="cart-page"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6 }}
+      >
         <div className="empty-cart">
-          <h2>Your Cart is Empty</h2>
-          <p>Add some delicious items to get started!</p>
+          <h2>Your cart awaits</h2>
+          <p>Fill it with our handcrafted delights and make every moment special.</p>
           <Link to="/products" className="continue-shopping-btn">
-            Continue Shopping
+            Discover Our Collection
           </Link>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="cart-page">
-      <h1>Shopping Cart</h1>
+    <motion.div 
+      className="cart-page"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+    >
+      <motion.h1 
+        className="cart-title"
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+      >
+        Your Selections
+      </motion.h1>
       
       {loading ? (
-        <div className="loading">Calculating prices...</div>
+        <div className="loading">Calculating your order...</div>
       ) : cartCalculation ? (
-        <div className="cart-content">
+        <motion.div 
+          className="cart-content"
+          variants={fadeInUp}
+          initial="initial"
+          animate="animate"
+          transition={{ delay: 0.2 }}
+        >
           <div className="cart-items">
             {cartCalculation.items.map((item, index) => (
-              <div key={`${item.product_id}-${item.subscription_type}`} className="cart-item">
+              <motion.div 
+                key={`${item.product_id}-${item.subscription_type}`} 
+                className="cart-item"
+                variants={fadeInUp}
+                initial="initial"
+                animate="animate"
+                transition={{ delay: index * 0.1 }}
+              >
                 <div className="item-image">
                   <img src={item.product_image} alt={item.product_name} />
                 </div>
@@ -540,11 +735,17 @@ const Cart = () => {
                 >
                   Remove
                 </button>
-              </div>
+              </motion.div>
             ))}
           </div>
           
-          <div className="cart-summary">
+          <motion.div 
+            className="cart-summary"
+            variants={fadeInUp}
+            initial="initial"
+            animate="animate"
+            transition={{ delay: 0.4 }}
+          >
             <h3>Order Summary</h3>
             <div className="summary-line">
               <span>Subtotal:</span>
@@ -561,13 +762,18 @@ const Cart = () => {
             <div className="delivery-info">
               <p>{cartCalculation.delivery_message}</p>
             </div>
-            <button className="checkout-btn" disabled>
+            <motion.button 
+              className="checkout-btn" 
+              disabled
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
               Checkout (Coming Soon)
-            </button>
-          </div>
-        </div>
+            </motion.button>
+          </motion.div>
+        </motion.div>
       ) : null}
-    </div>
+    </motion.div>
   );
 };
 
@@ -611,54 +817,82 @@ const Admin = () => {
   if (loading) return <div className="loading">Loading admin panel...</div>;
 
   return (
-    <div className="admin-page">
+    <motion.div 
+      className="admin-page"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+    >
       <div className="admin-header">
-        <h1>Admin Panel</h1>
-        <button 
+        <h1 className="admin-title">Bakery Management</h1>
+        <motion.button 
           className="create-product-btn"
           onClick={() => setShowCreateForm(!showCreateForm)}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
-          {showCreateForm ? 'Cancel' : 'Create Product'}
-        </button>
+          {showCreateForm ? 'Cancel' : 'Create New Product'}
+        </motion.button>
       </div>
 
-      {showCreateForm && (
-        <CreateProductForm 
-          onSuccess={() => {
-            setShowCreateForm(false);
-            fetchProducts();
-          }}
-        />
-      )}
+      <AnimatePresence>
+        {showCreateForm && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <CreateProductForm 
+              onSuccess={() => {
+                setShowCreateForm(false);
+                fetchProducts();
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="admin-products">
-        <h2>All Products</h2>
-        <div className="products-table">
-          {products.map(product => (
-            <div key={product.id} className="product-row">
+        <h2>Product Collection</h2>
+        <motion.div 
+          className="products-table"
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+        >
+          {products.map((product, index) => (
+            <motion.div 
+              key={product.id} 
+              className="product-row"
+              variants={fadeInUp}
+              transition={{ delay: index * 0.1 }}
+            >
               <div className="product-image-small">
                 <img src={product.image_url} alt={product.name} />
               </div>
               <div className="product-details">
                 <h3>{product.name}</h3>
-                <p>{product.category}</p>
-                <p>{product.base_price} INR</p>
-                <p>{product.subscription_eligible ? '✅ Subscription' : '❌ No Subscription'}</p>
+                <p><strong>Category:</strong> {product.category}</p>
+                <p><strong>Price:</strong> {product.base_price} INR</p>
+                <p>{product.subscription_eligible ? '✅ Subscription Available' : '❌ No Subscription'}</p>
                 <p>{product.in_stock ? '✅ In Stock' : '❌ Out of Stock'}</p>
               </div>
               <div className="product-actions">
-                <button 
+                <motion.button 
                   className="delete-btn"
                   onClick={() => deleteProduct(product.id)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   Delete
-                </button>
+                </motion.button>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -697,16 +931,23 @@ const CreateProductForm = ({ onSuccess }) => {
   };
 
   return (
-    <form className="create-product-form" onSubmit={handleSubmit}>
+    <motion.form 
+      className="create-product-form" 
+      onSubmit={handleSubmit}
+      variants={scaleIn}
+      initial="initial"
+      animate="animate"
+    >
       <h3>Create New Product</h3>
       
       <div className="form-group">
-        <label>Name</label>
+        <label>Product Name</label>
         <input
           type="text"
           value={formData.name}
           onChange={(e) => setFormData({...formData, name: e.target.value})}
           required
+          placeholder="Enter product name"
         />
       </div>
 
@@ -716,6 +957,7 @@ const CreateProductForm = ({ onSuccess }) => {
           value={formData.description}
           onChange={(e) => setFormData({...formData, description: e.target.value})}
           required
+          placeholder="Describe your product..."
         />
       </div>
 
@@ -739,6 +981,7 @@ const CreateProductForm = ({ onSuccess }) => {
           value={formData.base_price}
           onChange={(e) => setFormData({...formData, base_price: e.target.value})}
           required
+          placeholder="0.00"
         />
       </div>
 
@@ -749,6 +992,7 @@ const CreateProductForm = ({ onSuccess }) => {
           value={formData.image_url}
           onChange={(e) => setFormData({...formData, image_url: e.target.value})}
           required
+          placeholder="https://..."
         />
       </div>
 
@@ -759,7 +1003,7 @@ const CreateProductForm = ({ onSuccess }) => {
             checked={formData.subscription_eligible}
             onChange={(e) => setFormData({...formData, subscription_eligible: e.target.checked})}
           />
-          Subscription Eligible
+          Available for subscription
         </label>
       </div>
 
@@ -770,18 +1014,23 @@ const CreateProductForm = ({ onSuccess }) => {
             checked={formData.in_stock}
             onChange={(e) => setFormData({...formData, in_stock: e.target.checked})}
           />
-          In Stock
+          Currently in stock
         </label>
       </div>
 
-      <button type="submit" disabled={loading}>
+      <motion.button 
+        type="submit" 
+        disabled={loading}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+      >
         {loading ? 'Creating...' : 'Create Product'}
-      </button>
-    </form>
+      </motion.button>
+    </motion.form>
   );
 };
 
-// Auth Pages (Login, Register, Profile, etc.) - keeping existing code
+// Auth Pages
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -809,13 +1058,28 @@ const Login = () => {
   };
 
   return (
-    <div className="auth-page">
-      <form className="auth-form" onSubmit={handleSubmit}>
-        <h2>Login to Your Account</h2>
+    <motion.div 
+      className="auth-page"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+    >
+      <motion.form 
+        className="auth-form" 
+        onSubmit={handleSubmit}
+        variants={scaleIn}
+        initial="initial"
+        animate="animate"
+      >
+        <h2>Welcome Back</h2>
+        <p style={{ textAlign: 'center', marginBottom: '2rem', color: 'var(--soft-gray)' }}>
+          Sign in to continue your culinary journey
+        </p>
+        
         {error && <div className="error">{error}</div>}
         
         <div className="form-group">
-          <label htmlFor="email">Email</label>
+          <label htmlFor="email">Email Address</label>
           <input
             id="email"
             type="email"
@@ -834,25 +1098,31 @@ const Login = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            placeholder="Your password"
+            placeholder="Enter your password"
           />
         </div>
 
-        <button type="submit" disabled={loading} className="submit-btn">
-          {loading ? 'Logging in...' : 'Login'}
-        </button>
+        <motion.button 
+          type="submit" 
+          disabled={loading} 
+          className="submit-btn"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          {loading ? 'Signing in...' : 'Sign In'}
+        </motion.button>
 
         <div className="auth-links">
-          <Link to="/register">Don't have an account? Register</Link>
-          <Link to="/reset-password">Forgot password?</Link>
+          <Link to="/register">New to Flint & Flours? Create an account</Link>
+          <Link to="/reset-password">Forgot your password?</Link>
         </div>
         
         <div className="demo-accounts">
-          <p><strong>Demo Accounts:</strong></p>
+          <p><strong>Demo Access:</strong></p>
           <p>Admin: admin@flintandflours.com / admin123</p>
         </div>
-      </form>
-    </div>
+      </motion.form>
+    </motion.div>
   );
 };
 
@@ -878,7 +1148,7 @@ const Register = () => {
 
     const result = await register(email, password, region);
     if (result.success) {
-      setSuccess('Registration successful! Please check the console for email verification link, then login.');
+      setSuccess('Welcome to Flint & Flours! Please check the console for your email verification link, then sign in.');
     } else {
       setError(result.error);
     }
@@ -886,14 +1156,29 @@ const Register = () => {
   };
 
   return (
-    <div className="auth-page">
-      <form className="auth-form" onSubmit={handleSubmit}>
-        <h2>Create Your Account</h2>
+    <motion.div 
+      className="auth-page"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+    >
+      <motion.form 
+        className="auth-form" 
+        onSubmit={handleSubmit}
+        variants={scaleIn}
+        initial="initial"
+        animate="animate"
+      >
+        <h2>Join Our Story</h2>
+        <p style={{ textAlign: 'center', marginBottom: '2rem', color: 'var(--soft-gray)' }}>
+          Become part of our artisanal baking community
+        </p>
+        
         {error && <div className="error">{error}</div>}
         {success && <div className="success">{success}</div>}
         
         <div className="form-group">
-          <label htmlFor="email">Email</label>
+          <label htmlFor="email">Email Address</label>
           <input
             id="email"
             type="email"
@@ -918,7 +1203,7 @@ const Register = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="region">Region</label>
+          <label htmlFor="region">Your Region</label>
           <select
             id="region"
             value={region}
@@ -930,15 +1215,21 @@ const Register = () => {
           </select>
         </div>
 
-        <button type="submit" disabled={loading} className="submit-btn">
-          {loading ? 'Creating Account...' : 'Register'}
-        </button>
+        <motion.button 
+          type="submit" 
+          disabled={loading} 
+          className="submit-btn"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          {loading ? 'Creating Account...' : 'Create Account'}
+        </motion.button>
 
         <div className="auth-links">
-          <Link to="/login">Already have an account? Login</Link>
+          <Link to="/login">Already have an account? Sign in</Link>
         </div>
-      </form>
-    </div>
+      </motion.form>
+    </motion.div>
   );
 };
 
@@ -971,34 +1262,47 @@ const Profile = () => {
   if (!user) return <Navigate to="/login" />;
 
   return (
-    <div className="profile-page">
-      <div className="profile-container">
-        <h2>User Profile</h2>
+    <motion.div 
+      className="profile-page"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+    >
+      <motion.div 
+        className="profile-container"
+        variants={scaleIn}
+        initial="initial"
+        animate="animate"
+      >
+        <div className="profile-header">
+          <h2>Your Profile</h2>
+          <p>Manage your account and preferences</p>
+        </div>
         
         <div className="profile-info">
           <div className="info-card">
             <h3>Account Information</h3>
             <p><strong>Email:</strong> {user.email}</p>
             <p><strong>Current Region:</strong> {user.region}</p>
-            <p><strong>Email Verified:</strong> {user.is_email_verified ? '✅ Yes' : '⚠️ No'}</p>
-            <p><strong>Admin Status:</strong> {user.is_admin ? '✅ Admin' : '👤 User'}</p>
+            <p><strong>Email Verified:</strong> {user.is_email_verified ? '✅ Verified' : '⚠️ Pending'}</p>
+            <p><strong>Account Type:</strong> {user.is_admin ? '✅ Administrator' : '👤 Customer'}</p>
             <p><strong>Member Since:</strong> {new Date(user.created_at).toLocaleDateString()}</p>
           </div>
 
           {!user.is_email_verified && (
             <div className="verification-notice">
               <h4>⚠️ Email Verification Required</h4>
-              <p>Please check the console logs for your email verification link.</p>
+              <p>Please check the console logs for your email verification link to activate your account.</p>
             </div>
           )}
         </div>
 
         <form className="profile-form" onSubmit={handleUpdateProfile}>
-          <h3>Update Profile</h3>
+          <h3>Update Preferences</h3>
           {message && <div className={message.includes('Error') ? 'error' : 'success'}>{message}</div>}
           
           <div className="form-group">
-            <label htmlFor="region">Region Preference</label>
+            <label htmlFor="region">Regional Preference</label>
             <select
               id="region"
               value={region}
@@ -1010,18 +1314,29 @@ const Profile = () => {
             </select>
           </div>
 
-          <button type="submit" disabled={loading} className="submit-btn">
+          <motion.button 
+            type="submit" 
+            disabled={loading} 
+            className="submit-btn"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
             {loading ? 'Updating...' : 'Update Profile'}
-          </button>
+          </motion.button>
         </form>
 
         <div className="profile-actions">
-          <button onClick={handleLogout} className="logout-btn">
-            Logout
-          </button>
+          <motion.button 
+            onClick={handleLogout} 
+            className="logout-btn"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            Sign Out
+          </motion.button>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 
@@ -1037,7 +1352,7 @@ const ResetPassword = () => {
 
     try {
       await axios.post(`${API}/auth/reset-password`, { email });
-      setMessage('If the email exists, a reset link has been sent. Check the console logs.');
+      setMessage('If the email exists in our system, a reset link has been sent. Please check the console logs.');
     } catch (error) {
       setMessage('Error sending reset link. Please try again.');
     }
@@ -1045,13 +1360,28 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="auth-page">
-      <form className="auth-form" onSubmit={handleSubmit}>
+    <motion.div 
+      className="auth-page"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+    >
+      <motion.form 
+        className="auth-form" 
+        onSubmit={handleSubmit}
+        variants={scaleIn}
+        initial="initial"
+        animate="animate"
+      >
         <h2>Reset Password</h2>
+        <p style={{ textAlign: 'center', marginBottom: '2rem', color: 'var(--soft-gray)' }}>
+          Enter your email to receive a reset link
+        </p>
+        
         {message && <div className="info">{message}</div>}
         
         <div className="form-group">
-          <label htmlFor="email">Email</label>
+          <label htmlFor="email">Email Address</label>
           <input
             id="email"
             type="email"
@@ -1062,15 +1392,21 @@ const ResetPassword = () => {
           />
         </div>
 
-        <button type="submit" disabled={loading} className="submit-btn">
+        <motion.button 
+          type="submit" 
+          disabled={loading} 
+          className="submit-btn"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
           {loading ? 'Sending...' : 'Send Reset Link'}
-        </button>
+        </motion.button>
 
         <div className="auth-links">
-          <Link to="/login">Back to Login</Link>
+          <Link to="/login">Back to Sign In</Link>
         </div>
-      </form>
-    </div>
+      </motion.form>
+    </motion.div>
   );
 };
 
@@ -1096,15 +1432,20 @@ const InitializeData = () => {
   }, []);
 
   return (
-    <div className="init-data">
+    <motion.div 
+      className="init-data"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+    >
       {loading ? (
-        <div className="loading">Initializing sample data...</div>
+        <div className="loading">Preparing your bakery experience...</div>
       ) : (
         <div className={message.includes('Error') ? 'error' : 'success'}>
           {message}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 
@@ -1116,25 +1457,27 @@ function App() {
           <BrowserRouter>
             <Header />
             <main className="main-content">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/products" element={<Products />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/profile" element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin" element={
-                  <AdminRoute>
-                    <Admin />
-                  </AdminRoute>
-                } />
-                <Route path="/init" element={<InitializeData />} />
-              </Routes>
+              <AnimatePresence mode="wait">
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/products" element={<Products />} />
+                  <Route path="/cart" element={<Cart />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/profile" element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin" element={
+                    <AdminRoute>
+                      <Admin />
+                    </AdminRoute>
+                  } />
+                  <Route path="/init" element={<InitializeData />} />
+                </Routes>
+              </AnimatePresence>
             </main>
           </BrowserRouter>
         </ShoppingProvider>
