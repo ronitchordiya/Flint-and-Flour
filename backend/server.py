@@ -1050,80 +1050,41 @@ async def create_checkout(checkout_request: CheckoutRequest, request: Request):
         # Save transaction to database
         await db.payment_transactions.insert_one(transaction.dict())
         
-        # Route to appropriate payment gateway
-        if payment_gateway == "stripe":
-            # Use Stripe for Canada
-            success_url = f"{origin}/order-confirmation?session_id={{CHECKOUT_SESSION_ID}}"
-            cancel_url = f"{origin}/cart"
-            
-            checkout_session_request = CheckoutSessionRequest(
-                amount=float(cart_response.total),
-                currency=cart_response.currency.lower(),
-                success_url=success_url,
-                cancel_url=cancel_url,
-                metadata={
-                    "transaction_id": transaction.id,
-                    "user_email": checkout_request.user_email or "guest",
-                    "region": checkout_request.region
-                }
-            )
-            
-            session = await stripe_checkout.create_checkout_session(checkout_session_request)
-            
-            # Update transaction with Stripe session ID
-            await db.payment_transactions.update_one(
-                {"id": transaction.id},
-                {"$set": {
-                    "gateway_order_id": session.session_id,
-                    "status": "pending",
-                    "updated_at": datetime.utcnow()
-                }}
-            )
-            
-            return CheckoutResponse(
-                checkout_url=session.url,
-                payment_gateway="stripe",
-                transaction_id=transaction.id,
-                amount=cart_response.total,
-                currency=cart_response.currency,
-                gateway_order_id=session.session_id
-            )
-            
-        elif payment_gateway == "razorpay":
-            # Use Razorpay for India
-            amount_in_paise = int(cart_response.total * 100)
-            
-            order_data = {
-                "amount": amount_in_paise,
-                "currency": cart_response.currency,
-                "receipt": f"receipt_{transaction.id}",
-                "notes": {
-                    "transaction_id": transaction.id,
-                    "user_email": checkout_request.user_email or "guest",
-                    "region": checkout_request.region
-                }
-            }
-            
-            razorpay_order = razorpay_client.order.create(data=order_data)
-            
-            # Update transaction with Razorpay order ID
-            await db.payment_transactions.update_one(
-                {"id": transaction.id},
-                {"$set": {
-                    "gateway_order_id": razorpay_order["id"],
-                    "status": "pending",
-                    "updated_at": datetime.utcnow()
-                }}
-            )
-            
-            return CheckoutResponse(
-                payment_gateway="razorpay",
-                transaction_id=transaction.id,
-                amount=cart_response.total,
-                currency=cart_response.currency,
-                gateway_order_id=razorpay_order["id"],
-                razorpay_key_id=RAZORPAY_KEY_ID
-            )
+        # DEMO MODE: Skip payment gateway integration for client demo
+        # Create order directly as completed for demonstration
+        order = Order(
+            user_email=checkout_request.user_email,
+            transaction_id=transaction.id,
+            items=[item.dict() for item in cart_response.items],
+            subtotal=cart_response.subtotal,
+            tax=cart_response.tax,
+            total=cart_response.total,
+            currency=cart_response.currency,
+            region=checkout_request.region,
+            delivery_address=checkout_request.delivery_address,
+            order_status="confirmed",
+            payment_status="completed"
+        )
+        
+        await db.orders.insert_one(order.dict())
+        
+        # Update transaction as completed
+        await db.payment_transactions.update_one(
+            {"id": transaction.id},
+            {"$set": {
+                "status": "completed",
+                "updated_at": datetime.utcnow()
+            }}
+        )
+        
+        return CheckoutResponse(
+            checkout_url=f"{origin}/order-confirmation?demo=true&order_id={order.id}",
+            payment_gateway=payment_gateway,
+            transaction_id=transaction.id,
+            amount=cart_response.total,
+            currency=cart_response.currency,
+            gateway_order_id=f"demo_{payment_gateway}_{transaction.id[:8]}"
+        )
             
     except Exception as e:
         logger.error(f"Checkout error: {e}")
