@@ -312,8 +312,10 @@ class Order(BaseModel):
     currency: str
     region: str
     delivery_address: Dict
-    order_status: str = Field("pending", description="pending, confirmed, preparing, out_for_delivery, delivered, cancelled")
+    order_status: str = Field("pending", description="pending, confirmed, preparing, shipped, delivered, cancelled")
     payment_status: str = Field("pending", description="pending, completed, failed, refunded")
+    delivery_status: str = Field("processing", description="processing, shipped, delivered")
+    tracking_link: Optional[str] = None
     delivery_date: Optional[datetime] = None
     notes: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
