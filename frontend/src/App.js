@@ -1398,22 +1398,21 @@ const OrdersManagement = ({ orders, filters, setFilters, onUpdateOrder }) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
+  const clearFilters = () => {
+    setFilters({
+      status: '',
+      region: '',
+      search: ''
+    });
+  };
+
+  const hasActiveFilters = filters.status || filters.region || filters.search;
+
   const handleUpdateOrder = (orderId) => {
     onUpdateOrder(orderId, orderUpdates);
     setEditingOrder(null);
     setOrderUpdates({});
   };
-
-  if (!orders || orders.length === 0) {
-    return (
-      <motion.div className="orders-management">
-        <h2>Order Management</h2>
-        <div className="empty-state">
-          <p>No orders found. Sample orders will appear here when customers place orders.</p>
-        </div>
-      </motion.div>
-    );
-  }
 
   return (
     <motion.div 
@@ -1451,102 +1450,149 @@ const OrdersManagement = ({ orders, filters, setFilters, onUpdateOrder }) => {
             value={filters.search}
             onChange={(e) => handleFilterChange('search', e.target.value)}
           />
+          
+          {hasActiveFilters && (
+            <motion.button 
+              className="clear-filters-btn"
+              onClick={clearFilters}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Clear Filters
+            </motion.button>
+          )}
         </div>
       </div>
 
-      <div className="orders-table">
-        {orders.map((order) => (
-          <motion.div 
-            key={order.id} 
-            className="order-card"
-            variants={fadeInUp}
-          >
-            <div className="order-header">
-              <div className="order-id">#{order.id.slice(-8)}</div>
-              <div className="order-date">
-                {new Date(order.created_at).toLocaleDateString()}
-              </div>
-              <div className={`status-badge ${order.order_status}`}>
-                {order.order_status}
-              </div>
+      {hasActiveFilters && (
+        <div className="filter-status">
+          <p>
+            Showing {orders.length} order{orders.length !== 1 ? 's' : ''} 
+            {filters.status && ` with status: ${filters.status}`}
+            {filters.region && ` in region: ${filters.region}`}
+            {filters.search && ` matching: "${filters.search}"`}
+          </p>
+        </div>
+      )}
+
+      {!orders || orders.length === 0 ? (
+        <div className="empty-orders-state">
+          {hasActiveFilters ? (
+            <div className="no-filter-results">
+              <h3>No orders match your filters</h3>
+              <p>Try adjusting your search criteria or clear the filters to see all orders.</p>
+              <motion.button 
+                className="clear-filters-btn large"
+                onClick={clearFilters}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                View All Orders
+              </motion.button>
             </div>
-            
-            <div className="order-details">
-              <div className="customer-info">
-                <strong>{order.user_email}</strong>
-                <p>{order.delivery_address?.name || 'N/A'}</p>
-                <p>{order.delivery_address?.city || 'N/A'}, {order.region}</p>
+          ) : (
+            <div className="no-orders">
+              <h3>No orders yet</h3>
+              <p>Orders will appear here when customers complete their purchases. You can test the checkout flow to see how orders are displayed.</p>
+              <p><strong>Tip:</strong> Try placing a test order by browsing products and going through checkout.</p>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="orders-table">
+          {orders.map((order) => (
+            <motion.div 
+              key={order.id} 
+              className="order-card"
+              variants={fadeInUp}
+            >
+              <div className="order-header">
+                <div className="order-id">#{order.id.slice(-8)}</div>
+                <div className="order-date">
+                  {new Date(order.created_at).toLocaleDateString()}
+                </div>
+                <div className={`status-badge ${order.order_status}`}>
+                  {order.order_status}
+                </div>
               </div>
               
-              <div className="order-items">
-                <strong>Items:</strong>
-                {order.items && order.items.map((item, idx) => (
-                  <div key={idx}>
-                    {item.product_name || item.name || 'Product'} x{item.quantity || 1}
+              <div className="order-details">
+                <div className="customer-info">
+                  <strong>{order.user_email}</strong>
+                  <p>{order.delivery_address?.name || 'N/A'}</p>
+                  <p>{order.delivery_address?.city || 'N/A'}, {order.region}</p>
+                </div>
+                
+                <div className="order-items">
+                  <strong>Items:</strong>
+                  {order.items && order.items.map((item, idx) => (
+                    <div key={idx}>
+                      {item.product_name || item.name || 'Product'} x{item.quantity || 1}
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="order-total">
+                  <strong>{order.total?.toFixed(2) || '0.00'} {order.currency || 'INR'}</strong>
+                </div>
+              </div>
+              
+              <div className="order-actions">
+                {editingOrder === order.id ? (
+                  <div className="edit-form">
+                    <select
+                      value={orderUpdates.order_status || order.order_status}
+                      onChange={(e) => setOrderUpdates(prev => ({...prev, order_status: e.target.value}))}
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="confirmed">Confirmed</option>
+                      <option value="shipped">Shipped</option>
+                      <option value="delivered">Delivered</option>
+                    </select>
+                    
+                    <select
+                      value={orderUpdates.delivery_status || order.delivery_status || 'processing'}
+                      onChange={(e) => setOrderUpdates(prev => ({...prev, delivery_status: e.target.value}))}
+                    >
+                      <option value="processing">Processing</option>
+                      <option value="shipped">Shipped</option>
+                      <option value="delivered">Delivered</option>
+                    </select>
+                    
+                    <input
+                      type="text"
+                      placeholder="Tracking link"
+                      value={orderUpdates.tracking_link || order.tracking_link || ''}
+                      onChange={(e) => setOrderUpdates(prev => ({...prev, tracking_link: e.target.value}))}
+                    />
+                    
+                    <textarea
+                      placeholder="Order notes"
+                      value={orderUpdates.notes || order.notes || ''}
+                      onChange={(e) => setOrderUpdates(prev => ({...prev, notes: e.target.value}))}
+                    />
+                    
+                    <button onClick={() => handleUpdateOrder(order.id)}>Save</button>
+                    <button onClick={() => setEditingOrder(null)}>Cancel</button>
                   </div>
-                ))}
+                ) : (
+                  <div className="view-mode">
+                    {order.tracking_link && (
+                      <p><strong>Tracking:</strong> 
+                        <a href={order.tracking_link} target="_blank" rel="noopener noreferrer">
+                          Track Package
+                        </a>
+                      </p>
+                    )}
+                    {order.notes && <p><strong>Notes:</strong> {order.notes}</p>}
+                    <button onClick={() => setEditingOrder(order.id)}>Edit Order</button>
+                  </div>
+                )}
               </div>
-              
-              <div className="order-total">
-                <strong>{order.total?.toFixed(2) || '0.00'} {order.currency || 'INR'}</strong>
-              </div>
-            </div>
-            
-            <div className="order-actions">
-              {editingOrder === order.id ? (
-                <div className="edit-form">
-                  <select
-                    value={orderUpdates.order_status || order.order_status}
-                    onChange={(e) => setOrderUpdates(prev => ({...prev, order_status: e.target.value}))}
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="confirmed">Confirmed</option>
-                    <option value="shipped">Shipped</option>
-                    <option value="delivered">Delivered</option>
-                  </select>
-                  
-                  <select
-                    value={orderUpdates.delivery_status || order.delivery_status || 'processing'}
-                    onChange={(e) => setOrderUpdates(prev => ({...prev, delivery_status: e.target.value}))}
-                  >
-                    <option value="processing">Processing</option>
-                    <option value="shipped">Shipped</option>
-                    <option value="delivered">Delivered</option>
-                  </select>
-                  
-                  <input
-                    type="text"
-                    placeholder="Tracking link"
-                    value={orderUpdates.tracking_link || order.tracking_link || ''}
-                    onChange={(e) => setOrderUpdates(prev => ({...prev, tracking_link: e.target.value}))}
-                  />
-                  
-                  <textarea
-                    placeholder="Order notes"
-                    value={orderUpdates.notes || order.notes || ''}
-                    onChange={(e) => setOrderUpdates(prev => ({...prev, notes: e.target.value}))}
-                  />
-                  
-                  <button onClick={() => handleUpdateOrder(order.id)}>Save</button>
-                  <button onClick={() => setEditingOrder(null)}>Cancel</button>
-                </div>
-              ) : (
-                <div className="view-mode">
-                  {order.tracking_link && (
-                    <p><strong>Tracking:</strong> 
-                      <a href={order.tracking_link} target="_blank" rel="noopener noreferrer">
-                        Track Package
-                      </a>
-                    </p>
-                  )}
-                  {order.notes && <p><strong>Notes:</strong> {order.notes}</p>}
-                  <button onClick={() => setEditingOrder(order.id)}>Edit Order</button>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        ))}
-      </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
     </motion.div>
   );
 };
