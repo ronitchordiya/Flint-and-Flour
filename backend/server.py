@@ -1307,6 +1307,75 @@ async def initialize_sample_data():
         )
         await db.users.insert_one(admin_user.dict())
     
+    # Create sample orders for demo
+    sample_orders = [
+        {
+            "user_email": "customer1@example.com",
+            "transaction_id": "TXN_001",
+            "items": [
+                {
+                    "product_id": "sample_product_1",
+                    "product_name": "Jowar Bread",
+                    "quantity": 2,
+                    "unit_price": 150.0,
+                    "total_price": 300.0
+                }
+            ],
+            "subtotal": 300.0,
+            "tax": 54.0,
+            "total": 354.0,
+            "currency": "INR",
+            "region": "India",
+            "delivery_address": {
+                "name": "John Doe",
+                "email": "customer1@example.com",
+                "phone": "+91 9876543210",
+                "address": "123 Main Street",
+                "city": "Mumbai",
+                "postal_code": "400001"
+            },
+            "order_status": "pending",
+            "payment_status": "completed",
+            "delivery_status": "processing"
+        },
+        {
+            "user_email": "customer2@example.com", 
+            "transaction_id": "TXN_002",
+            "items": [
+                {
+                    "product_id": "sample_product_2",
+                    "product_name": "Chocolate Cake",
+                    "quantity": 1,
+                    "unit_price": 1300.0,
+                    "total_price": 1300.0
+                }
+            ],
+            "subtotal": 1300.0,
+            "tax": 234.0,
+            "total": 1534.0,
+            "currency": "INR",
+            "region": "India",
+            "delivery_address": {
+                "name": "Jane Smith",
+                "email": "customer2@example.com",
+                "phone": "+91 9876543211",
+                "address": "456 Oak Avenue",
+                "city": "Delhi",
+                "postal_code": "110001"
+            },
+            "order_status": "confirmed",
+            "payment_status": "completed",
+            "delivery_status": "shipped",
+            "tracking_link": "https://tracking.example.com/TRACK123"
+        }
+    ]
+    
+    for order_data in sample_orders:
+        order = Order(**order_data)
+        existing_order = await db.orders.find_one({"transaction_id": order.transaction_id})
+        if not existing_order:
+            await db.orders.insert_one(order.dict())
+    
     # Real Flint & Flours Products
     sample_products = [
         # SLICE BREADS
