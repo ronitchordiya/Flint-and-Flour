@@ -258,7 +258,48 @@ class PaymentStatusResponse(BaseModel):
     currency: str
     gateway_payment_id: Optional[str] = None
 
-# Order Models
+# Admin Models
+class OrderCreate(BaseModel):
+    user_email: str
+    transaction_id: str
+    items: List[Dict]
+    subtotal: float
+    tax: float
+    total: float
+    currency: str
+    region: str
+    delivery_address: Dict
+    notes: Optional[str] = None
+
+class OrderUpdate(BaseModel):
+    order_status: Optional[str] = None
+    delivery_status: Optional[str] = None
+    tracking_link: Optional[str] = None
+    notes: Optional[str] = None
+
+class OrderResponse(BaseModel):
+    id: str
+    user_email: str
+    items: List[Dict]
+    total: float
+    currency: str
+    region: str
+    delivery_address: Dict
+    order_status: str
+    payment_status: str
+    delivery_status: str
+    tracking_link: Optional[str]
+    delivery_date: Optional[datetime]
+    notes: Optional[str]
+    created_at: datetime
+
+class AdminStatsResponse(BaseModel):
+    total_orders: int
+    total_revenue: float
+    pending_orders: int
+    shipped_orders: int
+    monthly_sales: float
+    top_products: List[Dict]
 class Order(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: Optional[str] = None
