@@ -884,6 +884,138 @@ async def get_all_products_admin(admin_user: User = Depends(get_admin_user)):
     
     return result
 
+# ADMIN ORDER MANAGEMENT ENDPOINTS
+@api_router.get("/admin/orders", response_model=List[OrderResponse])
+async def get_all_orders(
+    admin_user: User = Depends(get_admin_user),
+    status: Optional[str] = None,
+    region: Optional[str] = None,
+    search: Optional[str] = None
+):
+    """Get all orders with filtering and search"""
+    # Build query
+    query = {}
+    
+    if status:
+        query["order_status"] = status
+    if region:
+        query["region"] = region
+    if search:
+        query["$or"] = [
+            {"user_email": {"$regex": search, "$options": "i"}},
+            {"id": {"$regex": search, "$options": "i"}}
+        ]
+    
+    # Get orders
+    orders = await db.orders.find(query).sort("created_at", -1).to_list(1000)
+    
+    # Convert to response format
+    result = []
+    for order_doc in orders:
+        order = Order(**order_doc)
+        result.append(OrderResponse(
+            id=order.id,
+            user_email=order.user_email,
+            items=order.items,
+            total=order.total,
+            currency=order.currency,
+            region=order.region,
+            delivery_address=order.delivery_address,
+            order_status=order.order_status,
+            payment_status=order.payment_status,
+            delivery_status=order.delivery_status,
+            tracking_link=order.tracking_link,
+            delivery_date=order.delivery_date,
+            notes=order.notes,
+            created_at=order.created_at
+        ))
+    
+    return result
+
+@api_router.put("/admin/orders/{order_id}", response_model=OrderResponse)
+async def update_order(
+    order_id: str,
+    order_update: OrderUpdate,
+    admin_user: User = Depends(get_admin_user)
+):
+    """Update order status, tracking, and notes"""
+    # Check if order exists
+    existing_order = await db.orders.find_one({"id": order_id})
+    if not existing_order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Prepare update data
+    update_data = {k: v for k, v in order_update.dict().items() if v is not None}
+    update_data["updated_at"] = datetime.utcnow()
+    
+    # Update order
+    await db.orders.update_one(
+        {"id": order_id},
+        {"$set": update_data}
+    )
+    
+    # Return updated order
+    updated_order_doc = await db.orders.find_one({"id": order_id})
+    order = Order(**updated_order_doc)
+    
+    return OrderResponse(
+        id=order.id,
+        user_email=order.user_email,
+        items=order.items,
+        total=order.total,
+        currency=order.currency,
+        region=order.region,
+        delivery_address=order.delivery_address,
+        order_status=order.order_status,
+        payment_status=order.payment_status,
+        delivery_status=order.delivery_status,
+        tracking_link=order.tracking_link,
+        delivery_date=order.delivery_date,
+        notes=order.notes,
+        created_at=order.created_at
+    )
+
+@api_router.get("/admin/stats", response_model=AdminStatsResponse)
+async def get_admin_stats(admin_user: User = Depends(get_admin_user)):
+    """Get admin dashboard statistics"""
+    # Total orders
+    total_orders = await db.orders.count_documents({})
+    
+    # Pending orders
+    pending_orders = await db.orders.count_documents({"order_status": "pending"})
+    
+    # Shipped orders
+    shipped_orders = await db.orders.count_documents({"delivery_status": "shipped"})
+    
+    # Total revenue from completed payments
+    revenue_pipeline = [
+        {"$match": {"payment_status": "completed"}},
+        {"$group": {"_id": None, "total": {"$sum": "$total"}}}
+    ]
+    revenue_result = await db.orders.aggregate(revenue_pipeline).to_list(1)
+    total_revenue = revenue_result[0]["total"] if revenue_result else 0
+    
+    # Monthly sales (current month)
+    current_month_start = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    monthly_pipeline = [
+        {"$match": {
+            "payment_status": "completed",
+            "created_at": {"$gte": current_month_start}
+        }},
+        {"$group": {"_id": None, "total": {"$sum": "$total"}}}
+    ]
+    monthly_result = await db.orders.aggregate(monthly_pipeline).to_list(1)
+    monthly_sales = monthly_result[0]["total"] if monthly_result else 0
+    
+    return AdminStatsResponse(
+        total_orders=total_orders,
+        total_revenue=total_revenue,
+        pending_orders=pending_orders,
+        shipped_orders=shipped_orders,
+        monthly_sales=monthly_sales,
+        top_products=[]
+    )
+
 # NEW PAYMENT ENDPOINTS
 @api_router.post("/payments/checkout", response_model=CheckoutResponse)
 async def create_checkout(checkout_request: CheckoutRequest, request: Request):
