@@ -1551,8 +1551,8 @@ const OrdersManagement = ({ orders, filters, setFilters, onUpdateOrder }) => {
   );
 };
 
-// Products Management Component  
-const ProductsManagement = ({ products, showCreateForm, setShowCreateForm, onDeleteProduct, onRefresh }) => {
+// Products Management Component with Edit & Photo Upload
+const ProductsManagement = ({ products, showCreateForm, setShowCreateForm, editingProduct, setEditingProduct, onDeleteProduct, onUpdateProduct, onRefresh }) => {
   return (
     <motion.div 
       className="products-management"
@@ -1590,6 +1590,23 @@ const ProductsManagement = ({ products, showCreateForm, setShowCreateForm, onDel
         )}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {editingProduct && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <EditProductForm 
+              product={editingProduct}
+              onUpdate={onUpdateProduct}
+              onCancel={() => setEditingProduct(null)}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="products-grid">
         {products.map((product, index) => (
           <motion.div 
@@ -1607,8 +1624,19 @@ const ProductsManagement = ({ products, showCreateForm, setShowCreateForm, onDel
               <p><strong>Price:</strong> ₹{product.base_price}</p>
               <p><strong>Subscription:</strong> {product.subscription_eligible ? '✅ Yes' : '❌ No'}</p>
               <p><strong>Stock:</strong> {product.in_stock ? '✅ Available' : '❌ Out of Stock'}</p>
+              {product.ingredients && product.ingredients.length > 0 && (
+                <p><strong>Ingredients:</strong> {product.ingredients.slice(0, 3).join(', ')}{product.ingredients.length > 3 ? '...' : ''}</p>
+              )}
             </div>
             <div className="product-actions">
+              <motion.button 
+                className="edit-btn"
+                onClick={() => setEditingProduct(product)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Edit
+              </motion.button>
               <motion.button 
                 className="delete-btn"
                 onClick={() => onDeleteProduct(product.id)}
@@ -1621,6 +1649,185 @@ const ProductsManagement = ({ products, showCreateForm, setShowCreateForm, onDel
           </motion.div>
         ))}
       </div>
+    </motion.div>
+  );
+};
+
+// Edit Product Form Component
+const EditProductForm = ({ product, onUpdate, onCancel }) => {
+  const [formData, setFormData] = useState({
+    name: product.name || '',
+    description: product.description || '',
+    category: product.category || 'breads',
+    base_price: product.base_price || '',
+    image_url: product.image_url || '',
+    subscription_eligible: product.subscription_eligible || false,
+    in_stock: product.in_stock !== false,
+    ingredients: product.ingredients ? product.ingredients.join(', ') : '',
+    bakers_notes: product.bakers_notes || ''
+  });
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const updatedProduct = {
+        ...formData,
+        base_price: parseFloat(formData.base_price),
+        ingredients: formData.ingredients.split(',').map(i => i.trim()).filter(i => i)
+      };
+
+      await onUpdate(product.id, updatedProduct);
+    } catch (error) {
+      console.error('Error updating product:', error);
+      alert('Error updating product');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setFormData(prev => ({ ...prev, image_url: e.target.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  return (
+    <motion.div 
+      className="product-form-container"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      <h3>Edit Product</h3>
+      <form onSubmit={handleSubmit} className="product-form">
+        <div className="form-grid">
+          <div className="form-group">
+            <label>Product Name</label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData(prev => ({...prev, name: e.target.value}))}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Category</label>
+            <select
+              value={formData.category}
+              onChange={(e) => setFormData(prev => ({...prev, category: e.target.value}))}
+            >
+              <option value="breads">Breads</option>
+              <option value="cookies">Cookies</option>
+              <option value="cakes">Cakes</option>
+              <option value="snacks">Snacks</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label>Price (₹)</label>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.base_price}
+              onChange={(e) => setFormData(prev => ({...prev, base_price: e.target.value}))}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Image Upload</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+            />
+            {formData.image_url && (
+              <div className="image-preview">
+                <img src={formData.image_url} alt="Preview" style={{width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px'}} />
+              </div>
+            )}
+          </div>
+
+          <div className="form-group full-width">
+            <label>Description</label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData(prev => ({...prev, description: e.target.value}))}
+              rows="3"
+            />
+          </div>
+
+          <div className="form-group full-width">
+            <label>Ingredients (comma-separated)</label>
+            <textarea
+              value={formData.ingredients}
+              onChange={(e) => setFormData(prev => ({...prev, ingredients: e.target.value}))}
+              placeholder="Flour, Sugar, Butter, Eggs..."
+              rows="2"
+            />
+          </div>
+
+          <div className="form-group full-width">
+            <label>Baker's Notes</label>
+            <textarea
+              value={formData.bakers_notes}
+              onChange={(e) => setFormData(prev => ({...prev, bakers_notes: e.target.value}))}
+              rows="2"
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={formData.subscription_eligible}
+                onChange={(e) => setFormData(prev => ({...prev, subscription_eligible: e.target.checked}))}
+              />
+              Subscription Eligible
+            </label>
+          </div>
+
+          <div className="form-group">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={formData.in_stock}
+                onChange={(e) => setFormData(prev => ({...prev, in_stock: e.target.checked}))}
+              />
+              In Stock
+            </label>
+          </div>
+        </div>
+
+        <div className="form-actions">
+          <motion.button 
+            type="submit" 
+            disabled={loading}
+            className="submit-btn"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            {loading ? 'Updating...' : 'Update Product'}
+          </motion.button>
+          <motion.button 
+            type="button"
+            onClick={onCancel}
+            className="cancel-btn"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            Cancel
+          </motion.button>
+        </div>
+      </form>
     </motion.div>
   );
 };
