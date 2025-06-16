@@ -1390,13 +1390,12 @@ const AdminDashboard = ({ stats }) => {
 };
 
 // Orders Management Component
-const OrdersManagement = ({ orders, filters, setFilters, onFilterChange, onUpdateOrder }) => {
+const OrdersManagement = ({ orders, filters, setFilters, onUpdateOrder }) => {
   const [editingOrder, setEditingOrder] = useState(null);
   const [orderUpdates, setOrderUpdates] = useState({});
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
-    setTimeout(onFilterChange, 300); // Debounced search
   };
 
   const handleUpdateOrder = (orderId) => {
@@ -1404,6 +1403,17 @@ const OrdersManagement = ({ orders, filters, setFilters, onFilterChange, onUpdat
     setEditingOrder(null);
     setOrderUpdates({});
   };
+
+  if (!orders || orders.length === 0) {
+    return (
+      <motion.div className="orders-management">
+        <h2>Order Management</h2>
+        <div className="empty-state">
+          <p>No orders found. Sample orders will appear here when customers place orders.</p>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div 
@@ -1464,21 +1474,21 @@ const OrdersManagement = ({ orders, filters, setFilters, onFilterChange, onUpdat
             <div className="order-details">
               <div className="customer-info">
                 <strong>{order.user_email}</strong>
-                <p>{order.delivery_address.name}</p>
-                <p>{order.delivery_address.city}, {order.region}</p>
+                <p>{order.delivery_address?.name || 'N/A'}</p>
+                <p>{order.delivery_address?.city || 'N/A'}, {order.region}</p>
               </div>
               
               <div className="order-items">
                 <strong>Items:</strong>
-                {order.items.map((item, idx) => (
+                {order.items && order.items.map((item, idx) => (
                   <div key={idx}>
-                    {item.product_name} x{item.quantity}
+                    {item.product_name || item.name || 'Product'} x{item.quantity || 1}
                   </div>
                 ))}
               </div>
               
               <div className="order-total">
-                <strong>{order.total.toFixed(2)} {order.currency}</strong>
+                <strong>{order.total?.toFixed(2) || '0.00'} {order.currency || 'INR'}</strong>
               </div>
             </div>
             
@@ -1496,7 +1506,7 @@ const OrdersManagement = ({ orders, filters, setFilters, onFilterChange, onUpdat
                   </select>
                   
                   <select
-                    value={orderUpdates.delivery_status || order.delivery_status}
+                    value={orderUpdates.delivery_status || order.delivery_status || 'processing'}
                     onChange={(e) => setOrderUpdates(prev => ({...prev, delivery_status: e.target.value}))}
                   >
                     <option value="processing">Processing</option>
