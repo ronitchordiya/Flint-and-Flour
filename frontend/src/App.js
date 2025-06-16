@@ -1128,13 +1128,41 @@ const Cart = () => {
 };
 
 const Admin = () => {
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [orderFilters, setOrderFilters] = useState({
+    status: '',
+    region: '',
+    search: ''
+  });
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    if (activeTab === 'dashboard') {
+      fetchStats();
+    } else if (activeTab === 'products') {
+      fetchProducts();
+    } else if (activeTab === 'orders') {
+      fetchOrders();
+    }
+  }, [activeTab]);
+
+  const fetchStats = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await axios.get(`${API}/admin/stats`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setStats(response.data);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchProducts = async () => {
     try {
@@ -1147,6 +1175,39 @@ const Admin = () => {
       console.error('Error fetching products:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('access_token');
+      const params = new URLSearchParams();
+      if (orderFilters.status) params.append('status', orderFilters.status);
+      if (orderFilters.region) params.append('region', orderFilters.region);
+      if (orderFilters.search) params.append('search', orderFilters.search);
+      
+      const response = await axios.get(`${API}/admin/orders?${params}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setOrders(response.data);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateOrderStatus = async (orderId, updates) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      await axios.put(`${API}/admin/orders/${orderId}`, updates, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchOrders(); // Refresh orders
+    } catch (error) {
+      console.error('Error updating order:', error);
+      alert('Error updating order: ' + error.message);
     }
   };
 
@@ -1174,7 +1235,260 @@ const Admin = () => {
       transition={{ duration: 0.6 }}
     >
       <div className="admin-header">
-        <h1 className="admin-title">Bakery Management</h1>
+        <h1 className="admin-title">Flint & Flours Admin</h1>
+        <div className="admin-tabs">
+          <button 
+            className={activeTab === 'dashboard' ? 'tab active' : 'tab'}
+            onClick={() => setActiveTab('dashboard')}
+          >
+            📊 Dashboard
+          </button>
+          <button 
+            className={activeTab === 'orders' ? 'tab active' : 'tab'}
+            onClick={() => setActiveTab('orders')}
+          >
+            🧾 Orders
+          </button>
+          <button 
+            className={activeTab === 'products' ? 'tab active' : 'tab'}
+            onClick={() => setActiveTab('products')}
+          >
+            🎁 Products
+          </button>
+        </div>
+      </div>
+
+      {activeTab === 'dashboard' && (
+        <AdminDashboard stats={stats} />
+      )}
+
+      {activeTab === 'orders' && (
+        <OrdersManagement 
+          orders={orders}
+          filters={orderFilters}
+          setFilters={setOrderFilters}
+          onFilterChange={fetchOrders}
+          onUpdateOrder={updateOrderStatus}
+        />
+      )}
+
+      {activeTab === 'products' && (
+        <ProductsManagement 
+          products={products}
+          showCreateForm={showCreateForm}
+          setShowCreateForm={setShowCreateForm}
+          onDeleteProduct={deleteProduct}
+          onRefresh={fetchProducts}
+        />
+      )}
+    </motion.div>
+  );
+};
+
+// Dashboard Component
+const AdminDashboard = ({ stats }) => {
+  if (!stats) return <div className="loading">Loading dashboard...</div>;
+
+  return (
+    <motion.div 
+      className="admin-dashboard"
+      variants={fadeInUp}
+      initial="initial"
+      animate="animate"
+    >
+      <div className="stats-grid">
+        <motion.div className="stat-card">
+          <h3>Total Orders</h3>
+          <div className="stat-number">{stats.total_orders}</div>
+        </motion.div>
+        
+        <motion.div className="stat-card">
+          <h3>Total Revenue</h3>
+          <div className="stat-number">₹{stats.total_revenue.toFixed(2)}</div>
+        </motion.div>
+        
+        <motion.div className="stat-card">
+          <h3>Pending Orders</h3>
+          <div className="stat-number">{stats.pending_orders}</div>
+        </motion.div>
+        
+        <motion.div className="stat-card">
+          <h3>Shipped Orders</h3>
+          <div className="stat-number">{stats.shipped_orders}</div>
+        </motion.div>
+        
+        <motion.div className="stat-card">
+          <h3>Monthly Sales</h3>
+          <div className="stat-number">₹{stats.monthly_sales.toFixed(2)}</div>
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+};
+
+// Orders Management Component
+const OrdersManagement = ({ orders, filters, setFilters, onFilterChange, onUpdateOrder }) => {
+  const [editingOrder, setEditingOrder] = useState(null);
+  const [orderUpdates, setOrderUpdates] = useState({});
+
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+    setTimeout(onFilterChange, 300); // Debounced search
+  };
+
+  const handleUpdateOrder = (orderId) => {
+    onUpdateOrder(orderId, orderUpdates);
+    setEditingOrder(null);
+    setOrderUpdates({});
+  };
+
+  return (
+    <motion.div 
+      className="orders-management"
+      variants={fadeInUp}
+      initial="initial"
+      animate="animate"
+    >
+      <div className="orders-header">
+        <h2>Order Management</h2>
+        <div className="orders-filters">
+          <select
+            value={filters.status}
+            onChange={(e) => handleFilterChange('status', e.target.value)}
+          >
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+          </select>
+          
+          <select
+            value={filters.region}
+            onChange={(e) => handleFilterChange('region', e.target.value)}
+          >
+            <option value="">All Regions</option>
+            <option value="India">India</option>
+            <option value="Canada">Canada</option>
+          </select>
+          
+          <input
+            type="text"
+            placeholder="Search orders..."
+            value={filters.search}
+            onChange={(e) => handleFilterChange('search', e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="orders-table">
+        {orders.map((order) => (
+          <motion.div 
+            key={order.id} 
+            className="order-card"
+            variants={fadeInUp}
+          >
+            <div className="order-header">
+              <div className="order-id">#{order.id.slice(-8)}</div>
+              <div className="order-date">
+                {new Date(order.created_at).toLocaleDateString()}
+              </div>
+              <div className={`status-badge ${order.order_status}`}>
+                {order.order_status}
+              </div>
+            </div>
+            
+            <div className="order-details">
+              <div className="customer-info">
+                <strong>{order.user_email}</strong>
+                <p>{order.delivery_address.name}</p>
+                <p>{order.delivery_address.city}, {order.region}</p>
+              </div>
+              
+              <div className="order-items">
+                <strong>Items:</strong>
+                {order.items.map((item, idx) => (
+                  <div key={idx}>
+                    {item.product_name} x{item.quantity}
+                  </div>
+                ))}
+              </div>
+              
+              <div className="order-total">
+                <strong>{order.total.toFixed(2)} {order.currency}</strong>
+              </div>
+            </div>
+            
+            <div className="order-actions">
+              {editingOrder === order.id ? (
+                <div className="edit-form">
+                  <select
+                    value={orderUpdates.order_status || order.order_status}
+                    onChange={(e) => setOrderUpdates(prev => ({...prev, order_status: e.target.value}))}
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="shipped">Shipped</option>
+                    <option value="delivered">Delivered</option>
+                  </select>
+                  
+                  <select
+                    value={orderUpdates.delivery_status || order.delivery_status}
+                    onChange={(e) => setOrderUpdates(prev => ({...prev, delivery_status: e.target.value}))}
+                  >
+                    <option value="processing">Processing</option>
+                    <option value="shipped">Shipped</option>
+                    <option value="delivered">Delivered</option>
+                  </select>
+                  
+                  <input
+                    type="text"
+                    placeholder="Tracking link"
+                    value={orderUpdates.tracking_link || order.tracking_link || ''}
+                    onChange={(e) => setOrderUpdates(prev => ({...prev, tracking_link: e.target.value}))}
+                  />
+                  
+                  <textarea
+                    placeholder="Order notes"
+                    value={orderUpdates.notes || order.notes || ''}
+                    onChange={(e) => setOrderUpdates(prev => ({...prev, notes: e.target.value}))}
+                  />
+                  
+                  <button onClick={() => handleUpdateOrder(order.id)}>Save</button>
+                  <button onClick={() => setEditingOrder(null)}>Cancel</button>
+                </div>
+              ) : (
+                <div className="view-mode">
+                  {order.tracking_link && (
+                    <p><strong>Tracking:</strong> 
+                      <a href={order.tracking_link} target="_blank" rel="noopener noreferrer">
+                        Track Package
+                      </a>
+                    </p>
+                  )}
+                  {order.notes && <p><strong>Notes:</strong> {order.notes}</p>}
+                  <button onClick={() => setEditingOrder(order.id)}>Edit Order</button>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  );
+};
+
+// Products Management Component  
+const ProductsManagement = ({ products, showCreateForm, setShowCreateForm, onDeleteProduct, onRefresh }) => {
+  return (
+    <motion.div 
+      className="products-management"
+      variants={fadeInUp}
+      initial="initial"
+      animate="animate"
+    >
+      <div className="products-header">
+        <h2>Product Management</h2>
         <motion.button 
           className="create-product-btn"
           onClick={() => setShowCreateForm(!showCreateForm)}
@@ -1196,51 +1510,43 @@ const Admin = () => {
             <CreateProductForm 
               onSuccess={() => {
                 setShowCreateForm(false);
-                fetchProducts();
+                onRefresh();
               }}
             />
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="admin-products">
-        <h2>Product Collection</h2>
-        <motion.div 
-          className="products-table"
-          variants={staggerContainer}
-          initial="initial"
-          animate="animate"
-        >
-          {products.map((product, index) => (
-            <motion.div 
-              key={product.id} 
-              className="product-row"
-              variants={fadeInUp}
-              transition={{ delay: index * 0.1 }}
-            >
-              <div className="product-image-small">
-                <img src={product.image_url} alt={product.name} />
-              </div>
-              <div className="product-details">
-                <h3>{product.name}</h3>
-                <p><strong>Category:</strong> {product.category}</p>
-                <p><strong>Price:</strong> {product.base_price} INR</p>
-                <p>{product.subscription_eligible ? '✅ Subscription Available' : '❌ No Subscription'}</p>
-                <p>{product.in_stock ? '✅ In Stock' : '❌ Out of Stock'}</p>
-              </div>
-              <div className="product-actions">
-                <motion.button 
-                  className="delete-btn"
-                  onClick={() => deleteProduct(product.id)}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  Delete
-                </motion.button>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
+      <div className="products-grid">
+        {products.map((product, index) => (
+          <motion.div 
+            key={product.id} 
+            className="product-admin-card"
+            variants={fadeInUp}
+            transition={{ delay: index * 0.1 }}
+          >
+            <div className="product-image-small">
+              <img src={product.image_url} alt={product.name} />
+            </div>
+            <div className="product-details">
+              <h3>{product.name}</h3>
+              <p><strong>Category:</strong> {product.category}</p>
+              <p><strong>Price:</strong> ₹{product.base_price}</p>
+              <p><strong>Subscription:</strong> {product.subscription_eligible ? '✅ Yes' : '❌ No'}</p>
+              <p><strong>Stock:</strong> {product.in_stock ? '✅ Available' : '❌ Out of Stock'}</p>
+            </div>
+            <div className="product-actions">
+              <motion.button 
+                className="delete-btn"
+                onClick={() => onDeleteProduct(product.id)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Delete
+              </motion.button>
+            </div>
+          </motion.div>
+        ))}
       </div>
     </motion.div>
   );
