@@ -1306,14 +1306,18 @@ const OrderHistory = () => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
+    const region = user?.region || 'India';
+    const timezone = region === 'India' ? 'Asia/Kolkata' : 'America/Toronto';
+    const timezoneName = region === 'India' ? 'IST (Indian Standard Time)' : 'EST (Eastern Standard Time)';
+    
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      timeZoneName: 'short'
-    });
+      timeZone: timezone
+    }) + ` ${timezoneName}`;
   };
 
   if (loading) return <div className="loading">Loading your orders...</div>;
