@@ -2662,6 +2662,115 @@ const ToastContainer = ({ toasts, removeToast }) => {
 };
 
 
+// REGISTER COMPONENT
+const Register = () => {
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    region: 'India'
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const { register } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const result = await register(formData.email, formData.password, formData.region);
+      if (result.success) {
+        setSuccess('🎉 Registration successful! Please check the console for your email verification link, then sign in.');
+        setTimeout(() => {
+          navigate('/login');
+        }, 3000);
+      } else {
+        setError(result.error);
+      }
+    } catch (error) {
+      setError('Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <motion.div 
+      className="auth-page"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+    >
+      <motion.div 
+        className="auth-form-container"
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
+      >
+        <h2 className="auth-title">Join Flint & Flours</h2>
+        <p className="auth-subtitle">Create your account to start your artisan bakery journey</p>
+        
+        {error && <div className="error-message">{error}</div>}
+        {success && <div className="success-message">{success}</div>}
+        
+        <motion.form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-group">
+            <label>Email Address</label>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData(prev => ({...prev, email: e.target.value}))}
+              required
+              placeholder="Enter your email"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              value={formData.password}
+              onChange={(e) => setFormData(prev => ({...prev, password: e.target.value}))}
+              required
+              placeholder="Create a secure password"
+              minLength="6"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>Region</label>
+            <select
+              value={formData.region}
+              onChange={(e) => setFormData(prev => ({...prev, region: e.target.value}))}
+            >
+              <option value="India">🇮🇳 India</option>
+              <option value="Canada">🇨🇦 Canada</option>
+            </select>
+          </div>
+          
+          <motion.button 
+            type="submit" 
+            disabled={loading}
+            className="auth-btn"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            {loading ? 'Creating Account...' : 'Create Account'}
+          </motion.button>
+        </motion.form>
+        
+        <div className="auth-footer">
+          <p>Already have an account? <Link to="/login" className="auth-link">Sign In</Link></p>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
 const Profile = () => {
   const { user, updateProfile, logout } = useAuth();
   const [region, setRegion] = useState(user?.region || 'India');
