@@ -1390,7 +1390,7 @@ const OrderHistory = () => {
               <div className="order-header">
                 <div className="order-info">
                   <h3 className="order-id">Order #{order.id.slice(-8)}</h3>
-                  <span className="order-date">{formatDate(order.created_at)}</span>
+                  <span className="order-date">{formatDate(order.created_at, order.region)}</span>
                 </div>
                 <div className="order-status">
                   <span className={`status-badge ${getStatusBadgeClass(order.order_status)}`}>
