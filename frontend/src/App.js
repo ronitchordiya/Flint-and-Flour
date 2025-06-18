@@ -2455,6 +2455,16 @@ function App() {
                       <Profile />
                     </ProtectedRoute>
                   } />
+                  <Route path="/my-orders" element={
+                    <ProtectedRoute>
+                      <OrderHistory />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/my-subscriptions" element={
+                    <ProtectedRoute>
+                      <MySubscriptions />
+                    </ProtectedRoute>
+                  } />
                   <Route path="/admin" element={
                     <AdminRoute>
                       <Admin />
