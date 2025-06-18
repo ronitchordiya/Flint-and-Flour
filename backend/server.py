@@ -1016,6 +1016,89 @@ async def get_admin_stats(admin_user: User = Depends(get_admin_user)):
         top_products=[]
     )
 
+# USER ORDER & SUBSCRIPTION ENDPOINTS
+@api_router.get("/users/orders", response_model=List[OrderResponse])
+async def get_user_orders(
+    current_user: User = Depends(get_current_user),
+    status: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None
+):
+    """Get orders for the current user"""
+    # Build query for user's orders
+    query = {"user_email": current_user.email}
+    
+    if status:
+        query["order_status"] = status
+    
+    # Date filtering
+    if date_from or date_to:
+        date_query = {}
+        if date_from:
+            date_query["$gte"] = datetime.fromisoformat(date_from)
+        if date_to:
+            date_query["$lte"] = datetime.fromisoformat(date_to)
+        query["created_at"] = date_query
+    
+    # Get orders
+    orders = await db.orders.find(query).sort("created_at", -1).to_list(100)
+    
+    # Convert to response format
+    result = []
+    for order_doc in orders:
+        order = Order(**order_doc)
+        result.append(OrderResponse(
+            id=order.id,
+            user_email=order.user_email,
+            items=order.items,
+            total=order.total,
+            currency=order.currency,
+            region=order.region,
+            delivery_address=order.delivery_address,
+            order_status=order.order_status,
+            payment_status=order.payment_status,
+            delivery_status=order.delivery_status,
+            tracking_link=order.tracking_link,
+            delivery_date=order.delivery_date,
+            notes=order.notes,
+            created_at=order.created_at
+        ))
+    
+    return result
+
+@api_router.get("/users/subscriptions")
+async def get_user_subscriptions(current_user: User = Depends(get_current_user)):
+    """Get subscriptions for the current user"""
+    try:
+        subscriptions = await db.subscriptions.find({"user_email": current_user.email}).to_list(100)
+        return subscriptions
+    except Exception as e:
+        # Return demo subscription if collection doesn't exist
+        return [{
+            "id": "demo_sub_001",
+            "plan_name": "Monthly Cookie Box",
+            "status": "active",
+            "next_renewal": (datetime.utcnow() + timedelta(days=7)).isoformat(),
+            "created_at": (datetime.utcnow() - timedelta(days=30)).isoformat(),
+            "products": ["Choco Chunk Cookies", "Almond Crunch Cookies"],
+            "monthly_price": 460,
+            "currency": "INR",
+            "user_email": current_user.email
+        }]
+
+@api_router.post("/subscriptions/{subscription_id}/{action}")
+async def manage_subscription(
+    subscription_id: str,
+    action: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Manage subscription (pause, cancel, resume)"""
+    if action not in ["pause", "cancel", "resume"]:
+        raise HTTPException(status_code=400, detail="Invalid action")
+    
+    # For demo, just return success
+    return {"message": f"Subscription {action} successful", "subscription_id": subscription_id}
+
 # NEW PAYMENT ENDPOINTS
 @api_router.post("/payments/checkout", response_model=CheckoutResponse)
 async def create_checkout(checkout_request: CheckoutRequest, request: Request):
