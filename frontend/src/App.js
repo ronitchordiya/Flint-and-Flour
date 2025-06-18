@@ -1575,7 +1575,7 @@ const MySubscriptions = () => {
                 
                 <div className="subscription-schedule">
                   <p><strong>Next Delivery:</strong> {formatNextRenewal(subscription.next_renewal)}</p>
-                  <p><strong>Started:</strong> {formatDate(subscription.created_at)}</p>
+                  <p><strong>Started:</strong> {formatDate(subscription.created_at, user?.region)}</p>
                 </div>
               </div>
 
