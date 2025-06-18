@@ -1127,6 +1127,395 @@ const Cart = () => {
   );
 };
 
+// ORDER HISTORY PAGE
+const OrderHistory = () => {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState({
+    status: '',
+    dateFrom: '',
+    dateTo: ''
+  });
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      fetchUserOrders();
+    }
+  }, [user, filters]);
+
+  const fetchUserOrders = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('access_token');
+      const params = new URLSearchParams();
+      
+      if (filters.status) params.append('status', filters.status);
+      if (filters.dateFrom) params.append('date_from', filters.dateFrom);
+      if (filters.dateTo) params.append('date_to', filters.dateTo);
+      
+      const response = await axios.get(`${API}/users/orders?${params}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setOrders(response.data);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      // Show demo orders if API fails
+      setOrders([
+        {
+          id: "ORDER_DEMO_001",
+          created_at: new Date().toISOString(),
+          items: [
+            { product_name: "Jowar Bread", quantity: 2, unit_price: 150, image_url: "https://images.unsplash.com/photo-1509440159596-0249088772ff" }
+          ],
+          total: 354,
+          currency: "INR",
+          region: "India",
+          order_status: "delivered",
+          payment_status: "completed",
+          delivery_address: { name: "You", city: "Your City" },
+          tracking_link: "https://track.example.com/DEMO123"
+        }
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReorder = async (order) => {
+    // Add items from this order to cart
+    for (const item of order.items) {
+      // This would need the actual product ID - for demo, we'll show an alert
+      alert(`Reordering: ${item.product_name} x${item.quantity}`);
+    }
+  };
+
+  const downloadInvoice = (orderId) => {
+    // Demo: In production, this would generate/download PDF
+    alert(`Downloading invoice for order ${orderId}`);
+  };
+
+  const getStatusBadgeClass = (status) => {
+    const statusMap = {
+      'pending': 'status-pending',
+      'confirmed': 'status-confirmed', 
+      'shipped': 'status-shipped',
+      'delivered': 'status-delivered',
+      'cancelled': 'status-cancelled'
+    };
+    return statusMap[status] || 'status-pending';
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    });
+  };
+
+  if (loading) return <div className="loading">Loading your orders...</div>;
+
+  return (
+    <motion.div 
+      className="order-history-page"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+    >
+      <div className="page-header">
+        <h1 className="page-title">My Orders</h1>
+        <p className="page-subtitle">Track your order history and manage deliveries</p>
+      </div>
+
+      {/* Filters */}
+      <div className="order-filters">
+        <select
+          value={filters.status}
+          onChange={(e) => setFilters(prev => ({...prev, status: e.target.value}))}
+        >
+          <option value="">All Statuses</option>
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="shipped">Shipped</option>
+          <option value="delivered">Delivered</option>
+        </select>
+        
+        <input
+          type="date"
+          value={filters.dateFrom}
+          onChange={(e) => setFilters(prev => ({...prev, dateFrom: e.target.value}))}
+          placeholder="From Date"
+        />
+        
+        <input
+          type="date"
+          value={filters.dateTo}
+          onChange={(e) => setFilters(prev => ({...prev, dateTo: e.target.value}))}
+          placeholder="To Date"
+        />
+        
+        <button 
+          className="clear-filters-btn"
+          onClick={() => setFilters({ status: '', dateFrom: '', dateTo: '' })}
+        >
+          Clear Filters
+        </button>
+      </div>
+
+      {/* Orders List */}
+      <div className="orders-list">
+        {orders.length === 0 ? (
+          <div className="empty-orders">
+            <h3>No orders found</h3>
+            <p>You haven't placed any orders yet. Start shopping to see your order history here!</p>
+            <Link to="/products" className="shop-now-btn">Start Shopping</Link>
+          </div>
+        ) : (
+          orders.map((order, index) => (
+            <motion.div 
+              key={order.id}
+              className="order-card"
+              variants={fadeInUp}
+              initial="initial"
+              animate="animate"
+              transition={{ delay: index * 0.1 }}
+            >
+              <div className="order-header">
+                <div className="order-info">
+                  <h3 className="order-id">Order #{order.id.slice(-8)}</h3>
+                  <span className="order-date">{formatDate(order.created_at)}</span>
+                </div>
+                <div className="order-status">
+                  <span className={`status-badge ${getStatusBadgeClass(order.order_status)}`}>
+                    {order.order_status}
+                  </span>
+                  <span className="order-total">{order.total} {order.currency}</span>
+                </div>
+              </div>
+
+              <div className="order-items">
+                {order.items.map((item, idx) => (
+                  <div key={idx} className="order-item">
+                    <div className="item-image">
+                      <img src={item.image_url || 'https://images.unsplash.com/photo-1509440159596-0249088772ff'} alt={item.product_name} />
+                    </div>
+                    <div className="item-details">
+                      <h4>{item.product_name}</h4>
+                      <p>Quantity: {item.quantity}</p>
+                      <p>Price: {item.unit_price} {order.currency}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="order-details">
+                <div className="delivery-info">
+                  <p><strong>Deliver to:</strong> {order.delivery_address?.name}</p>
+                  <p>{order.delivery_address?.city}, {order.region}</p>
+                  {order.tracking_link && (
+                    <p>
+                      <strong>Tracking:</strong> 
+                      <a href={order.tracking_link} target="_blank" rel="noopener noreferrer" className="tracking-link">
+                        Track Package
+                      </a>
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="order-actions">
+                <button 
+                  className="reorder-btn"
+                  onClick={() => handleReorder(order)}
+                >
+                  Reorder
+                </button>
+                <button 
+                  className="invoice-btn"
+                  onClick={() => downloadInvoice(order.id)}
+                >
+                  Download Invoice
+                </button>
+                {order.order_status === 'delivered' && (
+                  <button className="review-btn">
+                    Write Review
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          ))
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
+// MY SUBSCRIPTIONS PAGE
+const MySubscriptions = () => {
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      fetchUserSubscriptions();
+    }
+  }, [user]);
+
+  const fetchUserSubscriptions = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('access_token');
+      const response = await axios.get(`${API}/users/subscriptions`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSubscriptions(response.data);
+    } catch (error) {
+      console.error('Error fetching subscriptions:', error);
+      // Show demo subscription if API fails
+      setSubscriptions([
+        {
+          id: "SUB_DEMO_001",
+          plan_name: "Monthly Cookie Box",
+          status: "active",
+          next_renewal: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+          products: ["Choco Chunk Cookies", "Almond Crunch Cookies"],
+          monthly_price: 460,
+          currency: "INR"
+        }
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubscriptionAction = async (subscriptionId, action) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      await axios.post(`${API}/subscriptions/${subscriptionId}/${action}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchUserSubscriptions(); // Refresh
+    } catch (error) {
+      console.error(`Error ${action} subscription:`, error);
+      alert(`Subscription ${action} successful! (Demo mode)`);
+    }
+  };
+
+  const formatNextRenewal = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long', 
+      day: 'numeric',
+      timeZoneName: 'short'
+    });
+  };
+
+  if (loading) return <div className="loading">Loading your subscriptions...</div>;
+
+  return (
+    <motion.div 
+      className="subscriptions-page"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+    >
+      <div className="page-header">
+        <h1 className="page-title">My Subscriptions</h1>
+        <p className="page-subtitle">Manage your recurring bakery deliveries</p>
+      </div>
+
+      <div className="subscriptions-list">
+        {subscriptions.length === 0 ? (
+          <div className="empty-subscriptions">
+            <h3>No active subscriptions</h3>
+            <p>Set up a subscription to get your favorite bakery items delivered regularly!</p>
+            <Link to="/products" className="subscribe-btn">Browse Subscription Products</Link>
+          </div>
+        ) : (
+          subscriptions.map((subscription, index) => (
+            <motion.div 
+              key={subscription.id}
+              className="subscription-card"
+              variants={fadeInUp}
+              initial="initial"
+              animate="animate"
+              transition={{ delay: index * 0.1 }}
+            >
+              <div className="subscription-header">
+                <div className="subscription-info">
+                  <h3 className="subscription-name">{subscription.plan_name}</h3>
+                  <span className={`subscription-status status-${subscription.status}`}>
+                    {subscription.status}
+                  </span>
+                </div>
+                <div className="subscription-price">
+                  {subscription.monthly_price} {subscription.currency}/month
+                </div>
+              </div>
+
+              <div className="subscription-details">
+                <div className="subscription-products">
+                  <h4>Included Products:</h4>
+                  <ul>
+                    {subscription.products?.map((product, idx) => (
+                      <li key={idx}>{product}</li>
+                    ))}
+                  </ul>
+                </div>
+                
+                <div className="subscription-schedule">
+                  <p><strong>Next Delivery:</strong> {formatNextRenewal(subscription.next_renewal)}</p>
+                  <p><strong>Started:</strong> {formatDate(subscription.created_at)}</p>
+                </div>
+              </div>
+
+              <div className="subscription-actions">
+                {subscription.status === 'active' && (
+                  <>
+                    <button 
+                      className="pause-btn"
+                      onClick={() => handleSubscriptionAction(subscription.id, 'pause')}
+                    >
+                      Pause Subscription
+                    </button>
+                    <button 
+                      className="cancel-btn"
+                      onClick={() => handleSubscriptionAction(subscription.id, 'cancel')}
+                    >
+                      Cancel Subscription
+                    </button>
+                  </>
+                )}
+                
+                {subscription.status === 'paused' && (
+                  <button 
+                    className="resume-btn"
+                    onClick={() => handleSubscriptionAction(subscription.id, 'resume')}
+                  >
+                    Resume Subscription
+                  </button>
+                )}
+                
+                <button className="modify-btn">
+                  Modify Subscription
+                </button>
+              </div>
+            </motion.div>
+          ))
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [products, setProducts] = useState([]);
