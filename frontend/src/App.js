@@ -1619,9 +1619,8 @@ const MySubscriptions = () => {
 };
 
 // Shared utility functions
-const formatDate = (dateString) => {
+const formatDate = (dateString, region = 'India') => {
   const date = new Date(dateString);
-  const region = user?.region || 'India';
   const timezone = region === 'India' ? 'Asia/Kolkata' : 'America/Toronto';
   const timezoneName = region === 'India' ? 'IST (Indian Standard Time)' : 'EST (Eastern Standard Time)';
   
