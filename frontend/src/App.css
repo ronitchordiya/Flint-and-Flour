@@ -1588,12 +1588,11 @@ p {
   to { transform: rotate(360deg); }
 }
 
-/* Product Detail Page */
+/* Enhanced Product Detail Page */
 .product-detail-page {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 4rem 2rem;
-  animation: fadeInUp 0.8s var(--ease-out-quart);
+  padding: 2rem;
 }
 
 .product-detail-content {
@@ -1603,17 +1602,261 @@ p {
   align-items: start;
 }
 
-.product-detail-image {
+/* Product Gallery */
+.product-detail-gallery {
   position: sticky;
   top: 2rem;
 }
 
-.product-detail-image img {
+.main-image {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+  background: var(--warm-white);
+}
+
+.product-main-image {
   width: 100%;
   height: 500px;
   object-fit: cover;
-  border-radius: 25px;
-  box-shadow: var(--shadow-strong);
+  transition: transform 0.3s ease;
+}
+
+.main-image:hover .product-main-image {
+  transform: scale(1.05);
+}
+
+.subscription-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: var(--mocha);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Image Thumbnails */
+.image-thumbnails {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.thumbnail {
+  border: none;
+  padding: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  opacity: 0.7;
+}
+
+.thumbnail:hover,
+.thumbnail.active {
+  opacity: 1;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Product Info Enhanced */
+.product-badges {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+
+.region-badge,
+.subscription-badge-small {
+  padding: 0.3rem 0.8rem;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.region-badge {
+  background: var(--dusty-rose);
+  color: var(--charcoal);
+}
+
+.subscription-badge-small {
+  background: var(--mocha);
+  color: white;
+}
+
+.stock-warning {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  margin: 1rem 0;
+  font-weight: 600;
+  border-left: 4px solid #f59e0b;
+}
+
+/* Enhanced Ingredients */
+.ingredients-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.ingredient-tag {
+  background: var(--warm-white);
+  color: var(--charcoal);
+  padding: 0.3rem 0.8rem;
+  border-radius: 15px;
+  font-size: 0.9rem;
+  border: 1px solid var(--soft-beige);
+}
+
+/* Enhanced Product Options */
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.quantity-controls button {
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--soft-beige);
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.quantity-controls button:hover:not(:disabled) {
+  border-color: var(--mocha);
+  background: var(--mocha);
+  color: white;
+}
+
+.quantity-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.quantity-display {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--mocha);
+  min-width: 30px;
+  text-align: center;
+}
+
+.quantity-note {
+  color: var(--soft-gray);
+  font-size: 0.8rem;
+  margin-top: 0.3rem;
+  display: block;
+}
+
+/* Enhanced Subscription Options */
+.subscription-options button {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  border: 2px solid var(--soft-beige);
+  background: white;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 0.5rem;
+}
+
+.subscription-options button:hover {
+  border-color: var(--mocha);
+  background: var(--warm-white);
+}
+
+.subscription-options button.active {
+  border-color: var(--mocha);
+  background: var(--mocha);
+  color: white;
+}
+
+.subscription-options button small {
+  font-size: 0.7rem;
+  opacity: 0.8;
+  margin-top: 0.2rem;
+}
+
+/* Product Meta Information */
+.product-info-tabs {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--soft-beige);
+}
+
+.product-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.meta-item {
+  padding: 1rem;
+  background: var(--warm-white);
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+
+.meta-item strong {
+  color: var(--mocha);
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .product-detail-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .product-detail-gallery {
+    position: static;
+  }
+  
+  .product-main-image {
+    height: 300px;
+  }
+  
+  .thumbnail {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .subscription-options {
+    flex-direction: column;
+  }
+  
+  .product-meta {
+    grid-template-columns: 1fr;
+  }
 }
 
 .breadcrumb {
