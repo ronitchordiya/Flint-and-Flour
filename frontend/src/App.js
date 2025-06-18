@@ -271,6 +271,8 @@ const Header = () => {
                 {user.is_email_verified ? ' ✅' : ' ⚠️'}
               </span>
               <Link to="/profile" className="nav-link">Profile</Link>
+              <Link to="/my-orders" className="nav-link">My Orders</Link>
+              <Link to="/my-subscriptions" className="nav-link">Subscriptions</Link>
               {user.is_admin && (
                 <Link to="/admin" className="nav-link admin-link">Admin</Link>
               )}
