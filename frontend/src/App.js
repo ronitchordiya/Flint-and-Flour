@@ -622,6 +622,7 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [selectedSubscription, setSelectedSubscription] = useState('one-time');
   const [quantity, setQuantity] = useState(1);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const { region, addToCart } = useShopping();
 
   useEffect(() => {
@@ -650,6 +651,28 @@ const ProductDetail = () => {
     }
   };
 
+  // Mock multiple images - in production, these would come from the product data
+  const getProductImages = (product) => {
+    if (!product) return [];
+    return [
+      product.image_url,
+      // Add variation images for demo
+      product.image_url.replace('?ixlib=rb-4.0.3', '?ixlib=rb-4.0.3&w=800'),
+      product.image_url.replace('?ixlib=rb-4.0.3', '?ixlib=rb-4.0.3&fit=crop')
+    ].filter(Boolean);
+  };
+
+  const formatRegionAvailability = (region) => {
+    return region === 'India' ? 'Available in India 🇮🇳' : 'Available in Canada 🇨🇦';
+  };
+
+  const getStockWarning = (stock_count) => {
+    if (!stock_count || stock_count > 10) return null;
+    if (stock_count <= 3) return `Only ${stock_count} left - Order soon!`;
+    if (stock_count <= 5) return `${stock_count} available`;
+    return null;
+  };
+
   if (loading) return <div className="loading">Loading product details...</div>;
   if (!product) return (
     <div className="product-detail-page">
@@ -657,6 +680,10 @@ const ProductDetail = () => {
       <Link to="/products" className="continue-shopping">← Back to Products</Link>
     </div>
   );
+
+  const productImages = getProductImages(product);
+  const stockCount = Math.floor(Math.random() * 15) + 1; // Demo stock count
+  const stockWarning = getStockWarning(stockCount);
 
   return (
     <motion.div 
@@ -667,12 +694,39 @@ const ProductDetail = () => {
     >
       <div className="product-detail-content">
         <motion.div 
-          className="product-detail-image"
+          className="product-detail-gallery"
           variants={fadeInUp}
           initial="initial"
           animate="animate"
         >
-          <img src={product.image_url} alt={product.name} />
+          {/* Main Image */}
+          <div className="main-image">
+            <img 
+              src={productImages[selectedImageIndex]} 
+              alt={product.name} 
+              className="product-main-image"
+            />
+            {product.subscription_eligible && (
+              <div className="subscription-badge">
+                📦 Subscription Available
+              </div>
+            )}
+          </div>
+          
+          {/* Image Thumbnails */}
+          {productImages.length > 1 && (
+            <div className="image-thumbnails">
+              {productImages.map((image, index) => (
+                <button
+                  key={index}
+                  className={`thumbnail ${index === selectedImageIndex ? 'active' : ''}`}
+                  onClick={() => setSelectedImageIndex(index)}
+                >
+                  <img src={image} alt={`${product.name} view ${index + 1}`} />
+                </button>
+              ))}
+            </div>
+          )}
         </motion.div>
         
         <motion.div 
@@ -688,27 +742,40 @@ const ProductDetail = () => {
           
           <h1 className="product-detail-title">{product.name}</h1>
           
+          <div className="product-badges">
+            <span className="region-badge">{formatRegionAvailability(region)}</span>
+            {product.subscription_eligible && (
+              <span className="subscription-badge-small">Subscription Eligible</span>
+            )}
+          </div>
+          
           <div className="product-detail-price">
             {product.regional_price?.toFixed(2)} {product.currency}
           </div>
+          
+          {stockWarning && (
+            <div className="stock-warning">
+              ⚠️ {stockWarning}
+            </div>
+          )}
           
           <p className="product-detail-description">{product.description}</p>
           
           {product.bakers_notes && (
             <div className="bakers-notes">
-              <h3>Baker's Notes</h3>
+              <h3>👨‍🍳 Baker's Notes</h3>
               <p>{product.bakers_notes}</p>
             </div>
           )}
           
           {product.ingredients && product.ingredients.length > 0 && (
             <div className="ingredients">
-              <h3>Ingredients</h3>
-              <ul>
+              <h3>🥄 Ingredients</h3>
+              <div className="ingredients-list">
                 {product.ingredients.map((ingredient, index) => (
-                  <li key={index}>{ingredient}</li>
+                  <span key={index} className="ingredient-tag">{ingredient}</span>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
           
@@ -716,33 +783,46 @@ const ProductDetail = () => {
             <div className="quantity-selector">
               <label>Quantity:</label>
               <div className="quantity-controls">
-                <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</button>
-                <span>{quantity}</span>
-                <button onClick={() => setQuantity(quantity + 1)}>+</button>
+                <button 
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  disabled={quantity <= 1}
+                >
+                  -
+                </button>
+                <span className="quantity-display">{quantity}</span>
+                <button 
+                  onClick={() => setQuantity(quantity + 1)}
+                  disabled={quantity >= stockCount}
+                >
+                  +
+                </button>
               </div>
+              <small className="quantity-note">In stock: {stockCount}</small>
             </div>
             
             {product.subscription_eligible && (
               <div className="subscription-selector">
-                <label>Delivery:</label>
+                <label>Delivery Option:</label>
                 <div className="subscription-options">
                   <button 
                     className={selectedSubscription === 'one-time' ? 'active' : ''}
                     onClick={() => setSelectedSubscription('one-time')}
                   >
-                    One-time
+                    One-time Purchase
                   </button>
                   <button 
                     className={selectedSubscription === 'weekly' ? 'active' : ''}
                     onClick={() => setSelectedSubscription('weekly')}
                   >
-                    Weekly
+                    📅 Weekly Delivery
+                    <small>Save 5%</small>
                   </button>
                   <button 
                     className={selectedSubscription === 'monthly' ? 'active' : ''}
                     onClick={() => setSelectedSubscription('monthly')}
                   >
-                    Monthly
+                    📦 Monthly Delivery
+                    <small>Save 10%</small>
                   </button>
                 </div>
               </div>
@@ -752,16 +832,32 @@ const ProductDetail = () => {
           <motion.button 
             className="add-to-cart-btn large"
             onClick={handleAddToCart}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            disabled={stockCount === 0}
+            whileHover={{ scale: stockCount > 0 ? 1.02 : 1 }}
+            whileTap={{ scale: stockCount > 0 ? 0.98 : 1 }}
           >
-            Add to Cart
+            {stockCount === 0 ? 'Out of Stock' : 'Add to Cart'}
           </motion.button>
           
           <div className="product-actions">
             <Link to="/products" className="continue-shopping">
               ← Continue Shopping
             </Link>
+          </div>
+
+          {/* Additional Product Info */}
+          <div className="product-info-tabs">
+            <div className="product-meta">
+              <div className="meta-item">
+                <strong>Category:</strong> {product.category}
+              </div>
+              <div className="meta-item">
+                <strong>Region:</strong> {region}
+              </div>
+              <div className="meta-item">
+                <strong>Stock:</strong> {stockCount > 0 ? 'In Stock' : 'Out of Stock'}
+              </div>
+            </div>
           </div>
         </motion.div>
       </div>
