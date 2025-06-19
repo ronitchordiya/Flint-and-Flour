@@ -628,7 +628,7 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [selectedSubscription, setSelectedSubscription] = useState('one-time');
   const [quantity, setQuantity] = useState(1);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [thumbsSwiper, setThumbsSwiper] = useState(null);
   const { region, addToCart } = useShopping();
 
   useEffect(() => {
@@ -657,14 +657,15 @@ const ProductDetail = () => {
     }
   };
 
-  // Mock multiple images - in production, these would come from the product data
+  // Enhanced product images - simulate multiple images for demo
   const getProductImages = (product) => {
     if (!product) return [];
+    const baseImage = product.image_url;
     return [
-      product.image_url,
-      // Add variation images for demo
-      product.image_url.replace('?ixlib=rb-4.0.3', '?ixlib=rb-4.0.3&w=800'),
-      product.image_url.replace('?ixlib=rb-4.0.3', '?ixlib=rb-4.0.3&fit=crop')
+      baseImage,
+      baseImage + '&fit=crop&crop=center',
+      baseImage + '&w=800&h=600',
+      baseImage + '&blur=0&brightness=20'
     ].filter(Boolean);
   };
 
@@ -705,32 +706,64 @@ const ProductDetail = () => {
           initial="initial"
           animate="animate"
         >
-          {/* Main Image */}
-          <div className="main-image">
-            <img 
-              src={productImages[selectedImageIndex]} 
-              alt={product.name} 
-              className="product-main-image"
-            />
-            {product.subscription_eligible && (
-              <div className="subscription-badge">
-                📦 Subscription Available
-              </div>
-            )}
+          {/* Main Image Carousel */}
+          <div className="main-carousel">
+            <Swiper
+              modules={[Navigation, Pagination, Thumbs, Zoom]}
+              spaceBetween={10}
+              navigation={{
+                nextEl: '.swiper-button-next-custom',
+                prevEl: '.swiper-button-prev-custom',
+              }}
+              pagination={{ clickable: true }}
+              thumbs={{ swiper: thumbsSwiper && !thumbsSwiper.destroyed ? thumbsSwiper : null }}
+              zoom={true}
+              className="main-product-swiper"
+            >
+              {productImages.map((image, index) => (
+                <SwiperSlide key={index}>
+                  <div className="swiper-zoom-container">
+                    <img 
+                      src={image} 
+                      alt={`${product.name} view ${index + 1}`}
+                      className="product-carousel-image"
+                    />
+                  </div>
+                  {product.subscription_eligible && index === 0 && (
+                    <div className="subscription-badge">
+                      📦 Subscription Available
+                    </div>
+                  )}
+                </SwiperSlide>
+              ))}
+              
+              {/* Custom Navigation Buttons */}
+              <div className="swiper-button-prev-custom">‹</div>
+              <div className="swiper-button-next-custom">›</div>
+            </Swiper>
           </div>
           
-          {/* Image Thumbnails */}
+          {/* Thumbnail Carousel */}
           {productImages.length > 1 && (
-            <div className="image-thumbnails">
-              {productImages.map((image, index) => (
-                <button
-                  key={index}
-                  className={`thumbnail ${index === selectedImageIndex ? 'active' : ''}`}
-                  onClick={() => setSelectedImageIndex(index)}
-                >
-                  <img src={image} alt={`${product.name} view ${index + 1}`} />
-                </button>
-              ))}
+            <div className="thumb-carousel">
+              <Swiper
+                modules={[Thumbs]}
+                onSwiper={setThumbsSwiper}
+                spaceBetween={10}
+                slidesPerView={4}
+                watchSlidesProgress={true}
+                className="thumb-product-swiper"
+              >
+                {productImages.map((image, index) => (
+                  <SwiperSlide key={index}>
+                    <img 
+                      src={image} 
+                      alt={`${product.name} thumbnail ${index + 1}`}
+                      className="product-thumb-image"
+                    />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
             </div>
           )}
         </motion.div>
