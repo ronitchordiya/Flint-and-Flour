@@ -3435,11 +3435,105 @@ p, .body-text, .description {
   line-height: 1.6;
 }
 
-/* Ensure consistent button typography */
-button, .btn {
+/* Button Styling Fixes - Enhanced Contrast */
+.btn, button {
   font-family: var(--font-body);
   font-style: normal;
   font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+/* Radix UI Button Overrides for Better Contrast */
+[data-radix-collection-item] {
+  color: var(--charcoal) !important;
+}
+
+/* Button Variants with Proper Contrast */
+.bg-primary {
+  background-color: var(--mocha);
+  color: white;
+}
+
+.bg-primary:hover {
+  background-color: var(--charcoal);
+  color: white;
+}
+
+.hover\:bg-primary\/90:hover {
+  background-color: var(--charcoal);
+  color: white;
+}
+
+.bg-secondary {
+  background-color: var(--soft-beige);
+  color: var(--charcoal);
+}
+
+.bg-secondary:hover {
+  background-color: var(--dusty-rose);
+  color: var(--charcoal);
+}
+
+.hover\:bg-secondary\/80:hover {
+  background-color: var(--dusty-rose);
+  color: var(--charcoal);
+}
+
+/* Ghost Button Fixes */
+.hover\:bg-accent:hover {
+  background-color: var(--dusty-rose);
+  color: var(--charcoal);
+}
+
+.hover\:text-accent-foreground:hover {
+  color: var(--charcoal);
+}
+
+/* Outline Button Fixes */
+.border-input {
+  border-color: var(--soft-beige);
+  background-color: transparent;
+  color: var(--charcoal);
+}
+
+.hover\:bg-accent:hover.border-input {
+  background-color: var(--dusty-rose);
+  color: var(--charcoal);
+  border-color: var(--mocha);
+}
+
+/* Focus States */
+.focus\:bg-accent:focus {
+  background-color: var(--dusty-rose);
+  color: var(--charcoal);
+}
+
+.focus\:text-accent-foreground:focus {
+  color: var(--charcoal);
+}
+
+/* Ensure text visibility on all button states */
+button:hover,
+button:focus,
+button:active,
+.btn:hover,
+.btn:focus,
+.btn:active {
+  color: var(--charcoal);
+}
+
+/* White background button fixes */
+button[style*="background: white"],
+button[style*="background-color: white"] {
+  background-color: white !important;
+  color: var(--charcoal) !important;
+  border: 1px solid var(--soft-beige);
+}
+
+button[style*="background: white"]:hover,
+button[style*="background-color: white"]:hover {
+  background-color: var(--warm-white) !important;
+  color: var(--charcoal) !important;
 }
 
 /* Logo and brand text */
