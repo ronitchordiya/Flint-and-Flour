@@ -3283,7 +3283,7 @@ function App() {
                   </Routes>
                 </AnimatePresence>
               </main>
-            </BrowserRouter>
+            </Router>
           </ToastProvider>
         </ShoppingProvider>
       </AuthProvider>
