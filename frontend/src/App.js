@@ -225,6 +225,11 @@ const ShoppingProvider = ({ children }) => {
     return cart.reduce((total, item) => total + item.quantity, 0);
   };
 
+  const formatPrice = (price) => {
+    const currency = region === 'India' ? '₹' : '$';
+    return `${currency}${price.toFixed(2)}`;
+  };
+
   const value = {
     cart,
     region,
