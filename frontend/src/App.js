@@ -1741,10 +1741,25 @@ const Admin = () => {
     region: '',
     search: ''
   });
+  const [hasShownWelcomeNotification, setHasShownWelcomeNotification] = useState(false);
+  const { addToast } = useToast();
 
   useEffect(() => {
     fetchInitialData();
   }, []);
+
+  useEffect(() => {
+    // Show welcome notification on first load
+    if (stats && !hasShownWelcomeNotification) {
+      const newOrdersCount = stats.new_orders || 0;
+      if (newOrdersCount > 0) {
+        addToast(`🎉 You have ${newOrdersCount} new orders!`, 'success');
+      } else {
+        addToast(`👋 Welcome to Admin Dashboard!`, 'info');
+      }
+      setHasShownWelcomeNotification(true);
+    }
+  }, [stats, hasShownWelcomeNotification, addToast]);
 
   useEffect(() => {
     if (activeTab === 'orders') {
