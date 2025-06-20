@@ -308,8 +308,7 @@ const Home = () => {
           >
             <h1 className="hero-title">Where tradition meets artistry</h1>
             <p className="hero-subtitle">
-              Hand-crafted with love, baked with passion. Each creation tells a story of timeless recipes 
-              and modern innovation, bringing the warmth of our bakery to your table.
+              Order by 10:00 AM for same-day delivery
             </p>
             
             {deliveryInfo && (
