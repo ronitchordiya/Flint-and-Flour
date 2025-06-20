@@ -558,32 +558,44 @@ async def verify_email(request: EmailVerificationRequest):
 
 @api_router.post("/auth/reset-password")
 async def request_password_reset(request: PasswordResetRequest):
-    # Find user
-    user_doc = await db.users.find_one({"email": request.email})
-    if not user_doc:
+    """Request password reset with email"""
+    user = await db.users.find_one({"email": request.email})
+    if not user:
         # Don't reveal if email exists or not for security
-        return {"message": "If the email exists, a reset link has been sent"}
+        return {"message": "If an account with this email exists, you will receive a password reset link."}
     
     # Generate reset token
-    reset_token = secrets.token_urlsafe(32)
-    reset_expires = datetime.utcnow() + timedelta(hours=1)
+    reset_token = str(uuid.uuid4())
+    reset_expires = datetime.utcnow() + timedelta(hours=1)  # 1 hour expiry
     
     # Update user with reset token
     await db.users.update_one(
-        {"id": user_doc["id"]},
+        {"email": request.email},
         {
             "$set": {
                 "password_reset_token": reset_token,
-                "password_reset_expires": reset_expires,
-                "updated_at": datetime.utcnow()
+                "password_reset_expires": reset_expires
             }
         }
     )
     
-    # Log simulated password reset email
-    logger.info(f"SIMULATED EMAIL: Password reset link: /reset-password?token={reset_token}")
+    # Send password reset email
+    try:
+        email_result = await send_password_reset_email(
+            recipient_email=request.email,
+            reset_token=reset_token,
+            base_url="https://7dbdecab-5916-447f-8d41-222dafed78fb.preview.emergentagent.com"
+        )
+        
+        if email_result["success"]:
+            logger.info(f"Password reset email sent successfully to {request.email}")
+        else:
+            logger.error(f"Failed to send password reset email: {email_result.get('error')}")
+            
+    except Exception as e:
+        logger.error(f"Email service error for password reset: {str(e)}")
     
-    return {"message": "If the email exists, a reset link has been sent"}
+    return {"message": "If an account with this email exists, you will receive a password reset link."}
 
 @api_router.post("/auth/reset-password-confirm")
 async def confirm_password_reset(request: PasswordResetConfirm):
