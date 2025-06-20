@@ -1311,53 +1311,55 @@ const OrderHistory = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
-    status: '',
-    dateFrom: '',
-    dateTo: ''
+    status: 'all',
+    startDate: '',
+    endDate: '',
+    search: ''
   });
   const { user } = useAuth();
+  const { addToCart } = useShopping();
+  const { addToast } = useToast();
 
   useEffect(() => {
     if (user) {
-      fetchUserOrders();
+      fetchOrders();
     }
-  }, [user, filters]);
+  }, [user]);
 
-  const fetchUserOrders = async () => {
+  const fetchOrders = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('access_token');
-      const params = new URLSearchParams();
-      
-      if (filters.status) params.append('status', filters.status);
-      if (filters.dateFrom) params.append('date_from', filters.dateFrom);
-      if (filters.dateTo) params.append('date_to', filters.dateTo);
-      
-      const response = await axios.get(`${API}/users/orders?${params}`, {
+      const response = await axios.get(`${API}/orders`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setOrders(response.data);
     } catch (error) {
       console.error('Error fetching orders:', error);
-      // Show demo orders if API fails
-      setOrders([
-        {
-          id: "ORDER_DEMO_001",
-          created_at: new Date().toISOString(),
-          items: [
-            { product_name: "Jowar Bread", quantity: 2, unit_price: 150, image_url: "https://images.unsplash.com/photo-1509440159596-0249088772ff" }
-          ],
-          total: 354,
-          currency: "INR",
-          region: "India",
-          order_status: "delivered",
-          payment_status: "completed",
-          delivery_address: { name: "You", city: "Your City" },
-          tracking_link: "https://track.example.com/DEMO123"
-        }
-      ]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleReorder = async (order) => {
+    try {
+      // Add all items from the order to cart
+      let itemsAdded = 0;
+      for (const item of order.items) {
+        // Find the product details first
+        const productResponse = await axios.get(`${API}/products/${item.product_id}`);
+        const product = productResponse.data;
+        
+        // Add to cart with original subscription type
+        addToCart(product, item.quantity, item.subscription_type);
+        itemsAdded += item.quantity;
+      }
+      
+      // Show success toast
+      addToast(`✅ ${itemsAdded} items have been added to your cart again!`, 'success');
+    } catch (error) {
+      console.error('Error reordering:', error);
+      addToast('❌ Error adding items to cart. Please try again.', 'error');
     }
   };
 
