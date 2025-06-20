@@ -267,72 +267,7 @@ const AdminRoute = ({ children }) => {
   return children;
 };
 
-const Header = () => {
-  const { user, logout } = useAuth();
-  const { region, setRegion, getCartTotal } = useShopping();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
-
-  return (
-    <motion.header 
-      className="header"
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-    >
-      <div className="header-content">
-        <Link to="/" className="logo">
-          Flint & Flours
-        </Link>
-        
-        <div className="header-center">
-          <div className="region-selector">
-            <select 
-              value={region} 
-              onChange={(e) => setRegion(e.target.value)}
-              className="region-select"
-            >
-              <option value="India">🇮🇳 India</option>
-              <option value="Canada">🇨🇦 Canada</option>
-            </select>
-          </div>
-        </div>
-
-        <nav className="nav">
-          <Link to="/products" className="nav-link">Our Collection</Link>
-          <Link to="/cart" className="nav-link cart-link">
-            Cart ({getCartTotal()})
-          </Link>
-          
-          {user ? (
-            <div className="user-menu">
-              <span className="user-info">
-                {user.email.split('@')[0]}
-                {user.is_email_verified ? ' ✅' : ' ⚠️'}
-              </span>
-              <Link to="/profile" className="nav-link">Profile</Link>
-              <Link to="/my-orders" className="nav-link">My Orders</Link>
-              <Link to="/my-subscriptions" className="nav-link">Subscriptions</Link>
-              {user.is_admin && (
-                <Link to="/admin" className="nav-link admin-link">Admin</Link>
-              )}
-              <button onClick={handleLogout} className="logout-btn">Logout</button>
-            </div>
-          ) : (
-            <div className="auth-links">
-              <Link to="/login" className="nav-link">Login</Link>
-              <Link to="/register" className="nav-link">Register</Link>
-            </div>
-          )}
-        </nav>
-      </div>
-    </motion.header>
-  );
-};
+const Header = FlintFloursHeader;
 
 const Home = () => {
   const { user } = useAuth();
