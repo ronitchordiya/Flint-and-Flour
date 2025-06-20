@@ -897,27 +897,42 @@ async def get_all_products_admin(admin_user: User = Depends(get_admin_user)):
 
 # ADMIN ORDER MANAGEMENT ENDPOINTS
 @api_router.get("/admin/orders", response_model=List[OrderResponse])
-async def get_all_orders(
+async def get_admin_orders(
     admin_user: User = Depends(get_admin_user),
     status: Optional[str] = None,
     region: Optional[str] = None,
-    search: Optional[str] = None
+    order_type: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None
 ):
-    """Get all orders with filtering and search"""
-    # Build query
+    """Get all orders for admin with comprehensive filtering"""
     query = {}
     
-    if status:
-        query["order_status"] = status
-    if region:
-        query["region"] = region
-    if search:
-        query["$or"] = [
-            {"user_email": {"$regex": search, "$options": "i"}},
-            {"id": {"$regex": search, "$options": "i"}}
-        ]
+    # Filter by status
+    if status and status != "all":
+        query["payment_status"] = status
     
-    # Get orders
+    # Filter by region
+    if region and region != "all":
+        query["region"] = region
+        
+    # Filter by order type (subscription vs one-time)
+    if order_type and order_type != "all":
+        if order_type == "subscription":
+            query["items.subscription_type"] = {"$ne": "one-time"}
+        elif order_type == "one-time":
+            query["items.subscription_type"] = "one-time"
+    
+    # Filter by date range
+    if start_date and end_date:
+        try:
+            start = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
+            end = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+            query["created_at"] = {"$gte": start, "$lte": end}
+        except ValueError:
+            pass  # Invalid date format, ignore filter
+    
+    # Get orders with filters
     orders = await db.orders.find(query).sort("created_at", -1).to_list(1000)
     
     # Convert to response format
