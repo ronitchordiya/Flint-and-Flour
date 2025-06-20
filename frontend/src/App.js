@@ -2873,11 +2873,6 @@ const Login = () => {
           <Link to="/register">New to Flint & Flours? Create an account</Link>
           <Link to="/reset-password">Forgot your password?</Link>
         </div>
-        
-        <div className="demo-accounts">
-          <p><strong>Demo Access:</strong></p>
-          <p>Admin: admin@flintandflours.com / admin123</p>
-        </div>
       </motion.form>
     </motion.div>
   );
