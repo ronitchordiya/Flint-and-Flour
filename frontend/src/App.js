@@ -576,7 +576,7 @@ const Products = () => {
                 <h3 className="product-name">{product.name}</h3>
                 <p className="product-description">{product.description}</p>
                 <div className="product-price">
-                  {product.regional_price.toFixed(2)} {product.currency}
+                  {formatPrice(product.regional_price)}
                 </div>
                 <div className="product-actions">
                   <motion.button 
