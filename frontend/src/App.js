@@ -434,7 +434,7 @@ const Products = () => {
   const [category, setCategory] = useState('all');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { region, addToCart } = useShopping();
+  const { region, addToCart, formatPrice } = useShopping();
   const { addToast } = useToast();
 
   useEffect(() => {
