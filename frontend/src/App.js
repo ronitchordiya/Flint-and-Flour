@@ -2441,7 +2441,7 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
           </div>
 
           <div className="form-group">
-            <label>Image Upload</label>
+            <label>Main Product Image</label>
             <input
               type="file"
               accept="image/*"
@@ -2449,7 +2449,59 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
             />
             {formData.image_url && (
               <div className="image-preview">
-                <img src={formData.image_url} alt="Preview" style={{width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px'}} />
+                <img src={formData.image_url} alt="Main Preview" style={{width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px'}} />
+              </div>
+            )}
+          </div>
+
+          <div className="form-group full-width">
+            <label>Additional Images (for carousel)</label>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleAdditionalImageUpload}
+            />
+            {formData.additional_images && formData.additional_images.length > 0 && (
+              <div className="additional-images-preview">
+                <p>{formData.additional_images.length} additional images</p>
+                <div className="image-thumbnails">
+                  {formData.additional_images.map((image, index) => (
+                    <div key={index} className="image-thumbnail">
+                      <img src={image} alt={`Additional ${index + 1}`} />
+                      <div className="thumbnail-controls">
+                        <button
+                          type="button"
+                          onClick={() => removeAdditionalImage(index)}
+                          className="remove-image-btn"
+                          title="Remove image"
+                        >
+                          ×
+                        </button>
+                        {index > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => reorderImages(index, index - 1)}
+                            className="reorder-btn"
+                            title="Move left"
+                          >
+                            ←
+                          </button>
+                        )}
+                        {index < formData.additional_images.length - 1 && (
+                          <button
+                            type="button"
+                            onClick={() => reorderImages(index, index + 1)}
+                            className="reorder-btn"
+                            title="Move right"
+                          >
+                            →
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
