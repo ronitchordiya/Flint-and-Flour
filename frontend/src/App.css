@@ -3565,3 +3565,136 @@ button, .btn {
     gap: 0.5rem;
   }
 }
+
+/* New Header Styling */
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+.text-mocha {
+  color: var(--mocha);
+}
+
+.text-charcoal {
+  color: var(--charcoal);
+}
+
+.text-soft-gray {
+  color: var(--soft-gray);
+}
+
+.bg-warm-white {
+  background-color: var(--warm-white);
+}
+
+.bg-soft-beige {
+  background-color: var(--soft-beige);
+}
+
+.bg-dusty-rose {
+  background-color: var(--dusty-rose);
+}
+
+.border-soft-beige {
+  border-color: var(--soft-beige);
+}
+
+.hover\:text-mocha:hover {
+  color: var(--mocha);
+}
+
+.hover\:bg-dusty-rose:hover {
+  background-color: var(--dusty-rose);
+}
+
+.focus\:ring-mocha:focus {
+  --tw-ring-color: var(--mocha);
+}
+
+/* Product Modal Styling */
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px);
+}
+
+/* Enhanced Typography for New Components */
+.font-bold {
+  font-weight: 700;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.font-medium {
+  font-weight: 500;
+}
+
+/* Swiper Custom Styles for Modal */
+.main-product-swiper .swiper-button-next,
+.main-product-swiper .swiper-button-prev {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  margin-top: -20px;
+  box-shadow: var(--shadow-soft);
+}
+
+.main-product-swiper .swiper-button-next:after,
+.main-product-swiper .swiper-button-prev:after {
+  font-size: 16px;
+  color: var(--mocha);
+  font-weight: 600;
+}
+
+.thumb-swiper .swiper-slide {
+  cursor: pointer;
+}
+
+.thumb-swiper .swiper-slide-thumb-active img {
+  opacity: 1;
+  border: 2px solid var(--mocha);
+}
+
+/* Search Input Styling */
+input[type="text"]:focus {
+  outline: none;
+  border-color: var(--mocha);
+  box-shadow: 0 0 0 3px rgba(139, 90, 60, 0.1);
+}
+
+/* Button Hover Effects */
+.hover\:scale-\[1\.02\]:hover {
+  transform: scale(1.02);
+}
+
+/* Modal Animation Classes */
+.animate-in {
+  animation: animate-in 0.3s ease-out;
+}
+
+.animate-out {
+  animation: animate-out 0.3s ease-in;
+}
+
+@keyframes animate-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes animate-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
