@@ -1218,55 +1218,56 @@ async def create_checkout(checkout_request: CheckoutRequest, request: Request):
         
         # Route to appropriate payment gateway
         if payment_gateway == "stripe":
-            # Create Stripe checkout session for Canada
+            # Create Stripe checkout session for Canada using native Stripe SDK
             try:
-                # Prepare line items for Stripe - simplified format
+                import stripe
+                stripe.api_key = STRIPE_API_KEY
+                
+                # Prepare line items for Stripe
                 line_items = []
                 for item in cart_response.items:
-                    # Use a simpler structure that matches Stripe's expectations
-                    line_item = {
-                        "price_data": {
-                            "currency": cart_response.currency.lower(),
-                            "product_data": {
-                                "name": item.product_name,
+                    line_items.append({
+                        'price_data': {
+                            'currency': cart_response.currency.lower(),
+                            'product_data': {
+                                'name': item.product_name,
                             },
-                            "unit_amount": int(item.unit_price * 100),
+                            'unit_amount': int(item.unit_price * 100),
                         },
-                        "quantity": item.quantity,
-                    }
-                    line_items.append(line_item)
+                        'quantity': item.quantity,
+                    })
                 
-                # Debug: Log the line items structure
-                logger.info(f"Creating Stripe checkout with line items: {line_items}")
-                
-                # Create Stripe checkout session with minimal required fields
-                checkout_session_request = CheckoutSessionRequest(
+                # Create Stripe checkout session directly
+                checkout_session = stripe.checkout.Session.create(
+                    payment_method_types=['card'],
                     line_items=line_items,
+                    mode='payment',
                     success_url=f"{origin}/order-confirmation?session_id={{CHECKOUT_SESSION_ID}}&transaction_id={transaction.id}",
-                    cancel_url=f"{origin}/cart?cancelled=true"
+                    cancel_url=f"{origin}/cart?cancelled=true",
+                    customer_email=checkout_request.user_email,
+                    metadata={
+                        "transaction_id": transaction.id,
+                        "user_email": checkout_request.user_email,
+                        "region": checkout_request.region
+                    }
                 )
                 
-                stripe_response = await stripe_checkout.create_checkout_session(checkout_session_request)
+                # Update transaction with Stripe session ID
+                await db.payment_transactions.update_one(
+                    {"id": transaction.id},
+                    {"$set": {
+                        "stripe_session_id": checkout_session.id,
+                        "updated_at": datetime.utcnow()
+                    }}
+                )
                 
-                if stripe_response.success:
-                    # Update transaction with Stripe session ID
-                    await db.payment_transactions.update_one(
-                        {"id": transaction.id},
-                        {"$set": {
-                            "stripe_session_id": stripe_response.session_id,
-                            "updated_at": datetime.utcnow()
-                        }}
-                    )
-                    
-                    return CheckoutResponse(
-                        checkout_url=stripe_response.checkout_url,
-                        payment_gateway=payment_gateway,
-                        transaction_id=transaction.id,
-                        amount=cart_response.total,
-                        currency=cart_response.currency
-                    )
-                else:
-                    raise HTTPException(status_code=400, detail=f"Stripe error: {stripe_response.error}")
+                return CheckoutResponse(
+                    checkout_url=checkout_session.url,
+                    payment_gateway=payment_gateway,
+                    transaction_id=transaction.id,
+                    amount=cart_response.total,
+                    currency=cart_response.currency
+                )
                     
             except Exception as e:
                 logger.error(f"Stripe checkout error: {str(e)}")
