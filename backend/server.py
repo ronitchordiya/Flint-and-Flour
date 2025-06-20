@@ -297,11 +297,13 @@ class OrderResponse(BaseModel):
 
 class AdminStatsResponse(BaseModel):
     total_orders: int
-    total_revenue: float
     pending_orders: int
     shipped_orders: int
+    delivered_orders: int
+    total_revenue: float
     monthly_sales: float
-    top_products: List[Dict]
+    new_orders: int
+
 class Order(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: Optional[str] = None
