@@ -15,7 +15,7 @@ import { FlintFloursHeader } from './components/ui/header';
 import { ProductModal } from './components/ui/product-modal';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+export const API = `${BACKEND_URL}/api`;
 
 // Animation variants
 const fadeInUp = {
