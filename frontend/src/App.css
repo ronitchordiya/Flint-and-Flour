@@ -3435,58 +3435,85 @@ p, .body-text, .description {
   line-height: 1.6;
 }
 
-/* Enhanced Auth Button Styling with Perfect Contrast */
-.auth-form button,
+/* CRITICAL: Force button contrast across ALL buttons */
+button,
+.btn,
 .auth-btn,
 .login-btn,
 .register-btn,
-.submit-btn {
+.submit-btn,
+input[type="submit"],
+input[type="button"] {
   background: var(--mocha) !important;
   color: white !important;
-  border: none;
-  padding: 1rem 2rem;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
+  border: none !important;
+  font-family: var(--font-body);
+  font-weight: 500;
   transition: all 0.3s ease;
-  width: 100%;
-  margin-top: 1rem;
+  cursor: pointer;
 }
 
-.auth-form button:hover,
+button:hover,
+.btn:hover,
 .auth-btn:hover,
 .login-btn:hover,
 .register-btn:hover,
-.submit-btn:hover {
+.submit-btn:hover,
+input[type="submit"]:hover,
+input[type="button"]:hover {
   background: var(--charcoal) !important;
   color: white !important;
   transform: translateY(-1px);
-  box-shadow: var(--shadow-medium);
 }
 
-.auth-form button:focus,
+button:focus,
+.btn:focus,
 .auth-btn:focus,
 .login-btn:focus,
 .register-btn:focus,
-.submit-btn:focus {
+.submit-btn:focus,
+input[type="submit"]:focus,
+input[type="button"]:focus {
   background: var(--charcoal) !important;
   color: white !important;
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(139, 90, 60, 0.3);
+  outline: 2px solid var(--dusty-rose) !important;
+  outline-offset: 2px;
 }
 
-/* Force override for any conflicting styles */
-button.auth-btn,
-button.auth-btn:hover,
-button.auth-btn:focus,
-button.auth-btn:active {
+/* Ensure no conflicting styles can override */
+.auth-form button,
+.auth-form .auth-btn,
+form button,
+form .auth-btn,
+form input[type="submit"] {
   background: var(--mocha) !important;
   color: white !important;
 }
 
-button.auth-btn:hover {
+.auth-form button:hover,
+.auth-form .auth-btn:hover,
+form button:hover,
+form .auth-btn:hover,
+form input[type="submit"]:hover {
   background: var(--charcoal) !important;
+  color: white !important;
+}
+
+/* Special cases for header buttons */
+.header button,
+.nav button,
+.auth-links button {
+  background: var(--mocha) !important;
+  color: white !important;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+}
+
+.header button:hover,
+.nav button:hover,
+.auth-links button:hover {
+  background: var(--charcoal) !important;
+  color: white !important;
 }
 
 /* Header auth buttons */
