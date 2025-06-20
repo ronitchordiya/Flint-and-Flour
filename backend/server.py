@@ -1220,31 +1220,30 @@ async def create_checkout(checkout_request: CheckoutRequest, request: Request):
         if payment_gateway == "stripe":
             # Create Stripe checkout session for Canada
             try:
-                # Prepare line items for Stripe
+                # Prepare line items for Stripe - simplified format
                 line_items = []
                 for item in cart_response.items:
-                    line_items.append({
+                    # Use a simpler structure that matches Stripe's expectations
+                    line_item = {
                         "price_data": {
                             "currency": cart_response.currency.lower(),
                             "product_data": {
-                                "name": item.product_name
+                                "name": item.product_name,
                             },
-                            "unit_amount": int(item.unit_price * 100)
+                            "unit_amount": int(item.unit_price * 100),
                         },
-                        "quantity": item.quantity
-                    })
+                        "quantity": item.quantity,
+                    }
+                    line_items.append(line_item)
                 
-                # Create Stripe checkout session
+                # Debug: Log the line items structure
+                logger.info(f"Creating Stripe checkout with line items: {line_items}")
+                
+                # Create Stripe checkout session with minimal required fields
                 checkout_session_request = CheckoutSessionRequest(
                     line_items=line_items,
-                    success_url=f"{origin}/order-confirmation?session_id={{CHECKOUT_SESSION_ID}}&order_id={transaction.id}",
-                    cancel_url=f"{origin}/cart?cancelled=true",
-                    customer_email=checkout_request.user_email,
-                    metadata={
-                        "transaction_id": transaction.id,
-                        "user_email": checkout_request.user_email,
-                        "region": checkout_request.region
-                    }
+                    success_url=f"{origin}/order-confirmation?session_id={{CHECKOUT_SESSION_ID}}&transaction_id={transaction.id}",
+                    cancel_url=f"{origin}/cart?cancelled=true"
                 )
                 
                 stripe_response = await stripe_checkout.create_checkout_session(checkout_session_request)
