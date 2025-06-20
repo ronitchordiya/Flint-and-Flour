@@ -1240,6 +1240,7 @@ async def create_checkout(checkout_request: CheckoutRequest, request: Request):
                     line_items=line_items,
                     success_url=f"{origin}/order-confirmation?session_id={{CHECKOUT_SESSION_ID}}&order_id={transaction.id}",
                     cancel_url=f"{origin}/cart?cancelled=true",
+                    customer_email=checkout_request.user_email,
                     metadata={
                         "transaction_id": transaction.id,
                         "user_email": checkout_request.user_email,
