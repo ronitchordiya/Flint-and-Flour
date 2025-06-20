@@ -685,11 +685,12 @@ const ProductDetail = () => {
     }
   };
 
+  const { addToast } = useToast();
+  
   const handleAddToCart = () => {
     if (product) {
       addToCart(product, quantity, selectedSubscription);
-      // Show toast notification (we'll add this functionality)
-      showToastNotification(`Added ${quantity} ${product.name} to cart!`, 'success');
+      addToast(`Added ${quantity} ${product.name} to cart!`, 'success');
     }
   };
 
