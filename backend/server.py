@@ -608,7 +608,7 @@ async def update_profile(
 
 # Product endpoints
 @api_router.get("/products", response_model=List[ProductResponse])
-async def get_products(region: str = "India", category: Optional[str] = None):
+async def get_products(region: str = "India", category: Optional[str] = None, search: Optional[str] = None):
     # Validate region
     if region not in REGION_CONFIG:
         raise HTTPException(status_code=400, detail="Invalid region")
@@ -617,6 +617,17 @@ async def get_products(region: str = "India", category: Optional[str] = None):
     query = {"in_stock": True}
     if category:
         query["category"] = category
+    
+    # Add search functionality
+    if search:
+        search_regex = {"$regex": search, "$options": "i"}  # Case-insensitive search
+        query["$or"] = [
+            {"name": search_regex},
+            {"description": search_regex},
+            {"category": search_regex},
+            {"ingredients": {"$in": [search_regex]}},
+            {"bakers_notes": search_regex}
+        ]
     
     # Get products from database
     products = await db.products.find(query).to_list(1000)
