@@ -127,7 +127,42 @@ const useAuth = () => {
   return context;
 };
 
-// Shopping Context
+// Toast Notification Context
+const ToastContext = createContext();
+
+const ToastProvider = ({ children }) => {
+  const [toasts, setToasts] = useState([]);
+
+  const addToast = (message, type = 'info') => {
+    const id = Date.now() + Math.random();
+    const toast = { id, message, type };
+    setToasts(prev => [...prev, toast]);
+  };
+
+  const removeToast = (id) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
+  const value = {
+    addToast,
+    removeToast
+  };
+
+  return (
+    <ToastContext.Provider value={value}>
+      {children}
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
+    </ToastContext.Provider>
+  );
+};
+
+const useToast = () => {
+  const context = useContext(ToastContext);
+  if (!context) {
+    throw new Error('useToast must be used within ToastProvider');
+  }
+  return context;
+};
 const ShoppingContext = createContext();
 
 const ShoppingProvider = ({ children }) => {
