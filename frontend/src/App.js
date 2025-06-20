@@ -3242,7 +3242,7 @@ function App() {
       <AuthProvider>
         <ShoppingProvider>
           <ToastProvider>
-            <Router>
+            <BrowserRouter>
               <Header />
               <main className="main-content">
                 <AnimatePresence mode="wait">
