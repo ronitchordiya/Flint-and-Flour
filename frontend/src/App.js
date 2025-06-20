@@ -1514,12 +1514,14 @@ const OrderHistory = () => {
               </div>
 
               <div className="order-actions">
-                <button 
+                <motion.button
                   className="reorder-btn"
                   onClick={() => handleReorder(order)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   Reorder
-                </button>
+                </motion.button>
                 <button 
                   className="invoice-btn"
                   onClick={() => downloadInvoice(order.id)}
