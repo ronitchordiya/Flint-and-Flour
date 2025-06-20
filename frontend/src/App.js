@@ -1416,6 +1416,7 @@ const OrderHistory = () => {
         <select
           value={filters.status}
           onChange={(e) => setFilters(prev => ({...prev, status: e.target.value}))}
+          className="filter-select"
         >
           <option value="">All Statuses</option>
           <option value="pending">Pending</option>
@@ -1424,24 +1425,35 @@ const OrderHistory = () => {
           <option value="delivered">Delivered</option>
         </select>
         
-        <input
-          type="date"
-          value={filters.dateFrom}
-          onChange={(e) => setFilters(prev => ({...prev, dateFrom: e.target.value}))}
-          placeholder="From Date"
-        />
-        
-        <input
-          type="date"
-          value={filters.dateTo}
-          onChange={(e) => setFilters(prev => ({...prev, dateTo: e.target.value}))}
-          placeholder="To Date"
-        />
-        
-        <button 
-          className="clear-filters-btn"
-          onClick={() => setFilters({ status: '', dateFrom: '', dateTo: '' })}
+        <select 
+          value={filters.region} 
+          onChange={(e) => setFilters(prev => ({...prev, region: e.target.value}))}
+          className="filter-select"
         >
+          <option value="">All Regions</option>
+          <option value="India">🇮🇳 India</option>
+          <option value="Canada">🇨🇦 Canada</option>
+        </select>
+
+        <select 
+          value={filters.orderType} 
+          onChange={(e) => setFilters(prev => ({...prev, orderType: e.target.value}))}
+          className="filter-select"
+        >
+          <option value="">All Order Types</option>
+          <option value="one-time">One-Time Orders</option>
+          <option value="subscription">Subscription Orders</option>
+        </select>
+        
+        <input
+          type="text"
+          placeholder="Search by email or order ID..."
+          value={filters.search}
+          onChange={(e) => setFilters(prev => ({...prev, search: e.target.value}))}
+          className="search-input"
+        />
+        
+        <button onClick={() => setFilters({ status: '', region: '', orderType: '', search: '' })} className="reset-filters-btn">
           Clear Filters
         </button>
       </div>
