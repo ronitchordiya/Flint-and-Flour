@@ -688,7 +688,8 @@ const ProductDetail = () => {
   const handleAddToCart = () => {
     if (product) {
       addToCart(product, quantity, selectedSubscription);
-      alert('Added to cart!');
+      // Show toast notification (we'll add this functionality)
+      showToastNotification(`Added ${quantity} ${product.name} to cart!`, 'success');
     }
   };
 
