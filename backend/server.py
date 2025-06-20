@@ -448,33 +448,54 @@ def get_delivery_info(region: str) -> DeliveryInfo:
 # Auth endpoints
 @api_router.post("/auth/register", response_model=UserResponse)
 async def register(user_data: UserCreate):
-    # Validate region
-    if user_data.region not in ["India", "Canada"]:
-        raise HTTPException(status_code=400, detail="Region must be 'India' or 'Canada'")
-    
-    # Check if user already exists
+    """Register a new user with email verification"""
+    # Check if user exists
     existing_user = await db.users.find_one({"email": user_data.email})
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    # Create new user
-    password_hash = get_password_hash(user_data.password)
-    email_verification_token = secrets.token_urlsafe(32)
+    # Hash password
+    hashed_password = pwd_context.hash(user_data.password)
     
-    user = User(
-        email=user_data.email,
-        password_hash=password_hash,
-        region=user_data.region,
-        email_verification_token=email_verification_token
-    )
+    # Generate verification token
+    verification_token = str(uuid.uuid4())
+    verification_expires = datetime.utcnow() + timedelta(hours=24)
     
-    # Save to database
-    await db.users.insert_one(user.dict())
+    # Create user document
+    user_doc = {
+        "id": str(uuid.uuid4()),
+        "email": user_data.email,
+        "hashed_password": hashed_password,
+        "region": user_data.region,
+        "is_admin": False,
+        "is_email_verified": False,
+        "verification_token": verification_token,
+        "verification_expires": verification_expires,
+        "created_at": datetime.utcnow()
+    }
     
-    # Log simulated email verification
-    logger.info(f"SIMULATED EMAIL: Please verify your email by visiting: /api/auth/verify-email?token={email_verification_token}")
+    # Insert user into database
+    await db.users.insert_one(user_doc)
     
-    return UserResponse(**user.dict())
+    # Send verification email
+    try:
+        email_result = await send_verification_email(
+            recipient_email=user_data.email,
+            verification_token=verification_token,
+            base_url="https://7dbdecab-5916-447f-8d41-222dafed78fb.preview.emergentagent.com"
+        )
+        
+        if email_result["success"]:
+            logger.info(f"Verification email sent successfully to {user_data.email}")
+        else:
+            logger.error(f"Failed to send verification email: {email_result.get('error')}")
+            
+    except Exception as e:
+        logger.error(f"Email service error: {str(e)}")
+        # Don't fail registration if email fails, but log it
+    
+    # Return user data (excluding sensitive information)
+    return UserResponse(**{k: v for k, v in user_doc.items() if k != "hashed_password"})
 
 @api_router.post("/auth/login", response_model=Token)
 async def login(user_credentials: UserLogin):
