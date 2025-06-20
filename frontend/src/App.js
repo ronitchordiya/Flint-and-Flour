@@ -9,6 +9,7 @@ import 'swiper/css/pagination';
 import 'swiper/css/thumbs';
 import 'swiper/css/zoom';
 import axios from 'axios';
+import './App.css';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
