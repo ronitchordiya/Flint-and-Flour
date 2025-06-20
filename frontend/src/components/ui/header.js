@@ -19,10 +19,37 @@ const FlintFloursHeader = () => {
   const navigate = useNavigate();
   const [isOpen, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  // Search functionality with autocomplete
+  const searchProducts = async (query) => {
+    if (query.length < 2) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+
+    try {
+      const response = await axios.get(`${API}/products?region=${region}&search=${encodeURIComponent(query)}`);
+      const results = response.data.slice(0, 5); // Limit to 5 suggestions
+      setSearchResults(results);
+      setShowSearchResults(true);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    }
+  };
+
+  const handleSearchChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    searchProducts(query);
   };
 
   const handleSearch = (e) => {
@@ -30,7 +57,19 @@ const FlintFloursHeader = () => {
     if (searchQuery.trim()) {
       navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery("");
+      setShowSearchResults(false);
     }
+  };
+
+  const handleSearchResultClick = (product) => {
+    navigate(`/products/${product.id}`);
+    setSearchQuery("");
+    setShowSearchResults(false);
+  };
+
+  const handleSearchBlur = () => {
+    // Delay to allow click on search results
+    setTimeout(() => setShowSearchResults(false), 200);
   };
 
   const navigationItems = [
