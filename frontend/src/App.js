@@ -2253,46 +2253,63 @@ const ProductsManagement = ({ products, showCreateForm, setShowCreateForm, editi
       </AnimatePresence>
 
       <div className="products-grid">
-        {products.map((product, index) => (
-          <motion.div 
-            key={product.id} 
-            className="product-admin-card"
-            variants={fadeInUp}
-            transition={{ delay: index * 0.1 }}
-          >
-            <div className="product-image-small">
-              <img src={product.image_url} alt={product.name} />
-            </div>
-            <div className="product-details">
-              <h3>{product.name}</h3>
-              <p><strong>Category:</strong> {product.category}</p>
-              <p><strong>Price:</strong> ₹{product.base_price}</p>
-              <p><strong>Subscription:</strong> {product.subscription_eligible ? '✅ Yes' : '❌ No'}</p>
-              <p><strong>Stock:</strong> {product.in_stock ? '✅ Available' : '❌ Out of Stock'}</p>
-              {product.ingredients && product.ingredients.length > 0 && (
-                <p><strong>Ingredients:</strong> {product.ingredients.slice(0, 3).join(', ')}{product.ingredients.length > 3 ? '...' : ''}</p>
-              )}
-            </div>
-            <div className="product-actions">
-              <motion.button 
-                className="edit-btn"
-                onClick={() => setEditingProduct(product)}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                Edit
-              </motion.button>
-              <motion.button 
-                className="delete-btn"
-                onClick={() => onDeleteProduct(product.id)}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                Delete
-              </motion.button>
-            </div>
-          </motion.div>
-        ))}
+        {filteredProducts.length === 0 ? (
+          <div className="empty-state">
+            {searchQuery ? (
+              <div className="no-search-results">
+                <h3>No products found</h3>
+                <p>No products match your search for "{searchQuery}"</p>
+                <button onClick={clearSearch} className="clear-filters-btn">Clear Search</button>
+              </div>
+            ) : (
+              <div className="no-products">
+                <h3>No products available</h3>
+                <p>Create your first product to get started!</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          filteredProducts.map((product, index) => (
+            <motion.div 
+              key={product.id} 
+              className="product-admin-card"
+              variants={fadeInUp}
+              transition={{ delay: index * 0.1 }}
+            >
+              <div className="product-image-small">
+                <img src={product.image_url} alt={product.name} />
+              </div>
+              <div className="product-details">
+                <h3>{product.name}</h3>
+                <p><strong>Category:</strong> {product.category}</p>
+                <p><strong>Price:</strong> ₹{product.base_price}</p>
+                <p><strong>Subscription:</strong> {product.subscription_eligible ? '✅ Yes' : '❌ No'}</p>
+                <p><strong>Stock:</strong> {product.in_stock ? '✅ Available' : '❌ Out of Stock'}</p>
+                {product.ingredients && product.ingredients.length > 0 && (
+                  <p><strong>Ingredients:</strong> {product.ingredients.slice(0, 3).join(', ')}{product.ingredients.length > 3 ? '...' : ''}</p>
+                )}
+              </div>
+              <div className="product-actions">
+                <motion.button 
+                  className="edit-btn"
+                  onClick={() => setEditingProduct(product)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Edit
+                </motion.button>
+                <motion.button 
+                  className="delete-btn"
+                  onClick={() => onDeleteProduct(product.id)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Delete
+                </motion.button>
+              </div>
+            </motion.div>
+          ))
+        )}
       </div>
     </motion.div>
   );
