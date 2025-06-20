@@ -291,6 +291,8 @@ class OrderResponse(BaseModel):
     tracking_link: Optional[str]
     delivery_date: Optional[datetime]
     notes: Optional[str]
+    order_type: Optional[str] = None  # "One-Time" or "Subscription"
+    subscription_frequency: Optional[str] = None  # "Weekly" or "Monthly"
     created_at: datetime
 
 class AdminStatsResponse(BaseModel):
