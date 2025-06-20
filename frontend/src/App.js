@@ -432,10 +432,9 @@ const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState('all');
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const { region, addToCart, formatPrice } = useShopping();
   const { addToast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchProducts();
@@ -460,14 +459,8 @@ const Products = () => {
     addToast(`Added ${product.name}${subscriptionText} to cart!`, 'success');
   };
 
-  const openProductModal = (product) => {
-    setSelectedProduct(product);
-    setIsModalOpen(true);
-  };
-
-  const closeProductModal = () => {
-    setIsModalOpen(false);
-    setSelectedProduct(null);
+  const openProductPage = (product) => {
+    navigate(`/products/${product.id}`);
   };
 
   const getCategoryTitle = (cat) => {
