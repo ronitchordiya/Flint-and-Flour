@@ -613,7 +613,7 @@ const Products = () => {
   );
 };
 
-// NEW: Product Detail Page
+// Enhanced Product Detail Page - Modern Editorial Style
 const ProductDetail = () => {
   const { productId } = useParams();
   const [product, setProduct] = useState(null);
@@ -621,7 +621,9 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedSubscription, setSelectedSubscription] = useState('one-time');
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { region, addToCart, formatPrice } = useShopping();
+  const { addToast } = useToast();
 
   useEffect(() => {
     if (productId) {
@@ -636,22 +638,12 @@ const ProductDetail = () => {
       setProduct(response.data);
     } catch (error) {
       console.error('Error fetching product:', error);
-      setProduct(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const { addToast } = useToast();
-  
-  const handleAddToCart = () => {
-    if (product) {
-      addToCart(product, quantity, selectedSubscription);
-      addToast(`Added ${quantity} ${product.name} to cart!`, 'success');
-    }
-  };
-
-  // Enhanced product images - support multiple images with fallback
+  // Enhanced product images - support multiple images with better fallback
   const getProductImages = (product) => {
     if (!product) return [];
     
@@ -667,42 +659,51 @@ const ProductDetail = () => {
       images.push(...product.additional_images);
     }
     
-    // If we only have one image, create variants for demo purposes
-    if (images.length === 1) {
-      const baseImage = images[0];
-      return [
-        baseImage,
-        baseImage + '&fit=crop&crop=center',
-        baseImage + '&w=800&h=600',
-        baseImage + '&blur=0&brightness=20'
-      ].filter(Boolean);
-    }
-    
     return images.filter(Boolean);
   };
 
-  const formatRegionAvailability = (region) => {
-    return region === 'India' ? 'Available in India 🇮🇳' : 'Available in Canada 🇨🇦';
-  };
-
-  const getStockWarning = (stock_count) => {
-    if (!stock_count || stock_count > 10) return null;
-    if (stock_count <= 3) return `Only ${stock_count} left - Order soon!`;
-    if (stock_count <= 5) return `${stock_count} available`;
-    return null;
-  };
-
-  if (loading) return <div className="loading">Loading product details...</div>;
-  if (!product) return (
-    <div className="product-detail-page">
-      <div className="error">Product not found</div>
-      <Link to="/products" className="continue-shopping">← Back to Products</Link>
-    </div>
-  );
-
   const productImages = getProductImages(product);
-  const stockCount = Math.floor(Math.random() * 15) + 1; // Demo stock count
-  const stockWarning = getStockWarning(stockCount);
+  const hasMultipleImages = productImages.length > 1;
+
+  const handleAddToCart = () => {
+    if (product) {
+      addToCart(product, quantity, selectedSubscription);
+      addToast(`Added ${quantity} ${product.name} to cart!`, 'success');
+    }
+  };
+
+  const stockWarning = product && product.stock_count && product.stock_count <= 5;
+
+  if (loading) {
+    return (
+      <motion.div 
+        className="product-detail-loading"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <div className="loading-spinner">
+          <div className="spinner"></div>
+          <p>Loading product details...</p>
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <motion.div 
+        className="product-not-found"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <h2>Product Not Found</h2>
+        <p>Sorry, we couldn't find the product you're looking for.</p>
+        <Link to="/products" className="back-to-products">
+          ← Back to Collection
+        </Link>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div 
@@ -711,211 +712,236 @@ const ProductDetail = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
     >
-      <div className="product-detail-content">
-        <motion.div 
-          className="product-detail-gallery"
-          variants={fadeInUp}
-          initial="initial"
-          animate="animate"
-        >
-          {/* Main Image Carousel */}
-          <div className="main-carousel">
-            <Swiper
-              modules={[Navigation, Pagination, Thumbs, Zoom, Autoplay]}
-              spaceBetween={10}
-              navigation={{
-                nextEl: '.swiper-button-next-custom',
-                prevEl: '.swiper-button-prev-custom',
-              }}
-              pagination={{ clickable: true }}
-              autoplay={{
-                delay: 4000,
-                disableOnInteraction: false,
-                pauseOnMouseEnter: true,
-              }}
-              thumbs={{ swiper: thumbsSwiper && !thumbsSwiper.destroyed ? thumbsSwiper : null }}
-              zoom={true}
-              className="main-product-swiper"
-            >
-              {productImages.map((image, index) => (
-                <SwiperSlide key={index}>
-                  <div className="swiper-zoom-container">
-                    <img 
-                      src={image} 
-                      alt={`${product.name} view ${index + 1}`}
-                      className="product-carousel-image"
-                    />
-                  </div>
-                  {product.subscription_eligible && index === 0 && (
-                    <div className="subscription-badge">
-                      📦 Subscription Available
-                    </div>
-                  )}
-                </SwiperSlide>
-              ))}
-              
-              {/* Custom Navigation Buttons */}
-              <div className="swiper-button-prev-custom">‹</div>
-              <div className="swiper-button-next-custom">›</div>
-            </Swiper>
-          </div>
-          
-          {/* Thumbnail Carousel */}
-          {productImages.length > 1 && (
-            <div className="thumb-carousel">
-              <Swiper
-                modules={[Thumbs]}
-                onSwiper={setThumbsSwiper}
-                spaceBetween={10}
-                slidesPerView={4}
-                watchSlidesProgress={true}
-                className="thumb-product-swiper"
-              >
+      {/* Breadcrumb Navigation */}
+      <div className="breadcrumb">
+        <Link to="/" className="breadcrumb-link">Home</Link>
+        <span className="breadcrumb-separator">→</span>
+        <Link to="/products" className="breadcrumb-link">Collection</Link>
+        <span className="breadcrumb-separator">→</span>
+        <span className="breadcrumb-current">{product.name}</span>
+      </div>
+
+      <div className="product-detail-layout">
+        {/* Images Section */}
+        <div className="product-images-container">
+          {hasMultipleImages ? (
+            <div className="carousel-container">
+              {/* Main Image Display */}
+              <div className="main-image-container">
+                <motion.img
+                  key={currentImageIndex}
+                  src={productImages[currentImageIndex]}
+                  alt={`${product.name} - Image ${currentImageIndex + 1}`}
+                  className="main-product-image"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5 }}
+                />
+              </div>
+
+              {/* Thumbnail Navigation */}
+              <div className="thumbnail-grid">
                 {productImages.map((image, index) => (
-                  <SwiperSlide key={index}>
-                    <img 
-                      src={image} 
-                      alt={`${product.name} thumbnail ${index + 1}`}
-                      className="product-thumb-image"
-                    />
-                  </SwiperSlide>
+                  <motion.div
+                    key={index}
+                    className={`thumbnail ${index === currentImageIndex ? 'active' : ''}`}
+                    onClick={() => setCurrentImageIndex(index)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <img src={image} alt={`${product.name} thumbnail ${index + 1}`} />
+                  </motion.div>
                 ))}
-              </Swiper>
+              </div>
+
+              {/* Image Counter */}
+              <div className="image-counter">
+                {currentImageIndex + 1} / {productImages.length}
+              </div>
+            </div>
+          ) : (
+            <div className="single-image-container">
+              <img
+                src={productImages[0]}
+                alt={product.name}
+                className="single-product-image"
+              />
             </div>
           )}
-        </motion.div>
-        
-        <motion.div 
-          className="product-detail-info"
-          variants={fadeInUp}
-          initial="initial"
-          animate="animate"
-          transition={{ delay: 0.2 }}
-        >
-          <div className="breadcrumb">
-            <Link to="/products">Our Collection</Link> / {product.category} / {product.name}
+        </div>
+
+        {/* Product Information */}
+        <div className="product-info-container">
+          <div className="product-header">
+            <motion.h1 
+              className="product-title"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              {product.name}
+            </motion.h1>
+            
+            <motion.div 
+              className="product-price-section"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <div className="price-display">
+                {formatPrice(product.regional_price)}
+              </div>
+              {product.subscription_eligible && (
+                <div className="subscription-badge">
+                  Subscription Available
+                </div>
+              )}
+            </motion.div>
           </div>
-          
-          <h1 className="product-detail-title">{product.name}</h1>
-          
-          <div className="product-badges">
-            <span className="region-badge">{formatRegionAvailability(region)}</span>
-            {product.subscription_eligible && (
-              <span className="subscription-badge-small">Subscription Eligible</span>
-            )}
-          </div>
-          
-          <div className="product-detail-price">
-            {formatPrice(product.regional_price)}
-          </div>
-          
-          {stockWarning && (
-            <div className="stock-warning">
-              ⚠️ {stockWarning}
-            </div>
-          )}
-          
-          <p className="product-detail-description">{product.description}</p>
-          
+
+          {/* Product Description */}
+          <motion.div 
+            className="product-description"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <p>{product.description}</p>
+          </motion.div>
+
+          {/* Baker's Notes */}
           {product.bakers_notes && (
-            <div className="bakers-notes">
-              <h3>👨‍🍳 Baker's Notes</h3>
+            <motion.div 
+              className="bakers-notes"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <h3>Baker's Notes</h3>
               <p>{product.bakers_notes}</p>
-            </div>
+            </motion.div>
           )}
-          
+
+          {/* Ingredients */}
           {product.ingredients && product.ingredients.length > 0 && (
-            <div className="ingredients">
-              <h3>🥄 Ingredients</h3>
+            <motion.div 
+              className="ingredients-section"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+            >
+              <h3>Ingredients</h3>
               <div className="ingredients-list">
                 {product.ingredients.map((ingredient, index) => (
-                  <span key={index} className="ingredient-tag">{ingredient}</span>
+                  <span key={index} className="ingredient-tag">
+                    {ingredient}
+                  </span>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
-          
-          <div className="product-options">
-            <div className="quantity-selector">
-              <label>Quantity:</label>
-              <div className="quantity-controls">
-                <button 
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  disabled={quantity <= 1}
-                >
-                  -
-                </button>
-                <span className="quantity-display">{quantity}</span>
-                <button 
-                  onClick={() => setQuantity(quantity + 1)}
-                  disabled={quantity >= stockCount}
-                >
-                  +
-                </button>
-              </div>
-              <small className="quantity-note">In stock: {stockCount}</small>
-            </div>
-            
-            {product.subscription_eligible && (
-              <div className="subscription-selector">
-                <label>Delivery Option:</label>
+
+          {/* Stock Warning */}
+          {stockWarning && (
+            <motion.div 
+              className="stock-warning"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.7 }}
+            >
+              ⚠️ Only {product.stock_count} left in stock - Order soon!
+            </motion.div>
+          )}
+
+          {/* Purchase Options */}
+          {product.in_stock ? (
+            <motion.div 
+              className="purchase-section"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+            >
+              {/* Subscription Options */}
+              {product.subscription_eligible && (
                 <div className="subscription-options">
-                  <button 
-                    className={selectedSubscription === 'one-time' ? 'active' : ''}
-                    onClick={() => setSelectedSubscription('one-time')}
+                  <h4>Purchase Type</h4>
+                  <div className="subscription-grid">
+                    <label className="subscription-option">
+                      <input
+                        type="radio"
+                        name="subscription"
+                        value="one-time"
+                        checked={selectedSubscription === 'one-time'}
+                        onChange={(e) => setSelectedSubscription(e.target.value)}
+                      />
+                      <span>One-time purchase</span>
+                    </label>
+                    <label className="subscription-option">
+                      <input
+                        type="radio"
+                        name="subscription"
+                        value="weekly"
+                        checked={selectedSubscription === 'weekly'}
+                        onChange={(e) => setSelectedSubscription(e.target.value)}
+                      />
+                      <span>Weekly delivery <em>(Save 10%)</em></span>
+                    </label>
+                    <label className="subscription-option">
+                      <input
+                        type="radio"
+                        name="subscription"
+                        value="monthly"
+                        checked={selectedSubscription === 'monthly'}
+                        onChange={(e) => setSelectedSubscription(e.target.value)}
+                      />
+                      <span>Monthly delivery <em>(Save 15%)</em></span>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {/* Quantity Selector */}
+              <div className="quantity-section">
+                <h4>Quantity</h4>
+                <div className="quantity-controls">
+                  <button
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="quantity-btn"
                   >
-                    One-time Purchase
+                    −
                   </button>
-                  <button 
-                    className={selectedSubscription === 'weekly' ? 'active' : ''}
-                    onClick={() => setSelectedSubscription('weekly')}
+                  <span className="quantity-display">{quantity}</span>
+                  <button
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="quantity-btn"
                   >
-                    📅 Weekly Delivery
-                    <small>Save 5%</small>
-                  </button>
-                  <button 
-                    className={selectedSubscription === 'monthly' ? 'active' : ''}
-                    onClick={() => setSelectedSubscription('monthly')}
-                  >
-                    📦 Monthly Delivery
-                    <small>Save 10%</small>
+                    +
                   </button>
                 </div>
               </div>
-            )}
-          </div>
-          
-          <motion.button 
-            className="add-to-cart-btn large"
-            onClick={handleAddToCart}
-            disabled={stockCount === 0}
-            whileHover={{ scale: stockCount > 0 ? 1.02 : 1 }}
-            whileTap={{ scale: stockCount > 0 ? 0.98 : 1 }}
-          >
-            {stockCount === 0 ? 'Out of Stock' : 'Add to Cart'}
-          </motion.button>
-          
-          <div className="product-actions">
-            <Link to="/products" className="continue-shopping">
-              ← Continue Shopping
-            </Link>
-          </div>
 
-          {/* Additional Product Info */}
-          <div className="product-info-tabs">
-            <div className="product-meta">
-              <div className="meta-item">
-                <strong>Category:</strong> {product.category}
-              </div>
-              <div className="meta-item">
-                <strong>Region:</strong> {region}
-              </div>
-              <div className="meta-item">
-                <strong>Stock:</strong> {stockCount > 0 ? 'In Stock' : 'Out of Stock'}
-              </div>
-            </div>
-          </div>
-        </motion.div>
+              {/* Add to Cart Button */}
+              <motion.button
+                onClick={handleAddToCart}
+                className="add-to-cart-btn"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Add to Cart • {formatPrice(product.regional_price * quantity)}
+              </motion.button>
+            </motion.div>
+          ) : (
+            <motion.div 
+              className="out-of-stock"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+            >
+              <h3>Out of Stock</h3>
+              <p>This item is currently unavailable. Check back soon!</p>
+            </motion.div>
+          )}
+        </div>
       </div>
     </motion.div>
   );
