@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Minus, Star, Heart } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Thumbs, Zoom } from 'swiper/modules';
+import { useShopping, useToast } from '../../App';
 
 const ProductModal = ({ product, isOpen, onClose }) => {
   const [quantity, setQuantity] = useState(1);
