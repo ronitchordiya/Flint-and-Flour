@@ -1363,13 +1363,7 @@ const OrderHistory = () => {
     }
   };
 
-  const handleReorder = async (order) => {
-    // Add items from this order to cart
-    for (const item of order.items) {
-      // This would need the actual product ID - for demo, we'll show an alert
-      alert(`Reordering: ${item.product_name} x${item.quantity}`);
-    }
-  };
+
 
   const downloadInvoice = (orderId) => {
     // Demo: In production, this would generate/download PDF
