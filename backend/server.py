@@ -1384,16 +1384,22 @@ async def stripe_webhook(request: Request):
         
         import json
         event = json.loads(payload)
+        logger.info(f"Received Stripe webhook event: {event['type']}")
         
         if event['type'] == 'checkout.session.completed':
             session = event['data']['object']
             session_id = session['id']
+            customer_email = session.get('customer_email', session.get('customer_details', {}).get('email'))
+            
+            logger.info(f"Processing completed checkout session: {session_id}")
             
             # Find the transaction
             transaction = await db.payment_transactions.find_one({"stripe_session_id": session_id})
             if not transaction:
                 logger.error(f"Transaction not found for Stripe session: {session_id}")
                 return {"status": "error", "message": "Transaction not found"}
+            
+            logger.info(f"Found transaction: {transaction['id']}")
             
             # Create the order
             order = Order(
@@ -1409,42 +1415,59 @@ async def stripe_webhook(request: Request):
             )
             
             await db.orders.insert_one(order.dict())
+            logger.info(f"Order created: {order.id}")
             
             # Update transaction status
             await db.payment_transactions.update_one(
                 {"id": transaction["id"]},
                 {"$set": {
                     "status": "completed",
+                    "stripe_payment_intent": session.get('payment_intent'),
                     "updated_at": datetime.utcnow()
                 }}
             )
             
             # Send order confirmation email
             try:
+                # Prepare order data for email
                 order_data = {
                     "order_id": order.id,
-                    "order_date": order.created_at.strftime("%B %d, %Y"),
+                    "order_date": order.created_at.strftime("%B %d, %Y at %I:%M %p"),
                     "region": order.region,
-                    "items": order.items,
+                    "items": [
+                        {
+                            "name": item.get("product_name", "Unknown Item"),
+                            "quantity": item.get("quantity", 1),
+                            "price": item.get("unit_price", 0)
+                        }
+                        for item in order.items
+                    ],
                     "total": order.total,
                     "currency": "CAD" if order.region == "Canada" else "INR",
                     "expected_delivery": "2-3 business days"
                 }
                 
-                await send_order_confirmation_email(
+                email_result = await send_order_confirmation_email(
                     recipient_email=order.user_email,
                     order_data=order_data
                 )
-                logger.info(f"Order confirmation email sent for order: {order.id}")
-            except Exception as e:
-                logger.error(f"Failed to send order confirmation email: {str(e)}")
+                
+                if email_result["success"]:
+                    logger.info(f"Order confirmation email sent successfully to {order.user_email}")
+                else:
+                    logger.error(f"Failed to send order confirmation email: {email_result.get('error')}")
+                    
+            except Exception as email_error:
+                logger.error(f"Email sending error: {str(email_error)}")
             
-            logger.info(f"Order created successfully: {order.id}")
+            logger.info(f"Webhook processing completed successfully for order: {order.id}")
             
         return {"status": "success"}
         
     except Exception as e:
         logger.error(f"Stripe webhook error: {str(e)}")
+        import traceback
+        logger.error(f"Webhook traceback: {traceback.format_exc()}")
         return {"status": "error", "message": str(e)}
     """Verify Razorpay payment from frontend"""
     try:
