@@ -629,10 +629,10 @@ const ProductDetail = () => {
   const { productId } = useParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [selectedSubscription, setSelectedSubscription] = useState('one-time');
   const [quantity, setQuantity] = useState(1);
+  const [selectedSubscription, setSelectedSubscription] = useState('one-time');
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
-  const { region, addToCart } = useShopping();
+  const { region, addToCart, formatPrice } = useShopping();
 
   useEffect(() => {
     if (productId) {
