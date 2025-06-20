@@ -2445,7 +2445,7 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
             <input
               type="file"
               accept="image/*"
-              onChange={handleImageUpload}
+              onChange={handleMainImageUpload}
             />
             {formData.image_url && (
               <div className="image-preview">
