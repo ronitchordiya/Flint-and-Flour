@@ -2323,6 +2323,7 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
     category: product.category || 'breads',
     base_price: product.base_price || '',
     image_url: product.image_url || '',
+    additional_images: product.additional_images || [],
     subscription_eligible: product.subscription_eligible || false,
     in_stock: product.in_stock !== false,
     ingredients: product.ingredients ? product.ingredients.join(', ') : '',
@@ -2350,7 +2351,7 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
     }
   };
 
-  const handleImageUpload = (e) => {
+  const handleMainImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
@@ -2359,6 +2360,41 @@ const EditProductForm = ({ product, onUpdate, onCancel }) => {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleAdditionalImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    const newImages = [];
+
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        newImages.push(e.target.result);
+        if (newImages.length === files.length) {
+          setFormData(prev => ({ 
+            ...prev, 
+            additional_images: [...prev.additional_images, ...newImages] 
+          }));
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeAdditionalImage = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      additional_images: prev.additional_images.filter((_, i) => i !== index)
+    }));
+  };
+
+  const reorderImages = (fromIndex, toIndex) => {
+    setFormData(prev => {
+      const newImages = [...prev.additional_images];
+      const [movedImage] = newImages.splice(fromIndex, 1);
+      newImages.splice(toIndex, 0, movedImage);
+      return { ...prev, additional_images: newImages };
+    });
   };
 
   return (
