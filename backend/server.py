@@ -18,6 +18,11 @@ import pytz
 import time
 import hmac
 import hashlib
+import sys
+import os
+
+# Add current directory to Python path for local imports
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # Setup logging
 logger = logging.getLogger(__name__)
