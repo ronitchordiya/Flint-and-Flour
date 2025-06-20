@@ -8,29 +8,44 @@
 :root {
   /* Boutique Bakery Color Palette */
   --cream: #fefcf7;
-  --warm-white: #faf8f4;
-  --soft-beige: #f5f1e9;
-  --mocha: #8b6942;
-  --deep-mocha: #6b4f32;
-  --dusty-rose: #e8c5a0;
-  --blush: #f4e6d9;
-  --sage: #a8b5a0;
-  --charcoal: #3a3633;
-  --soft-gray: #8e8b87;
-  --gold: #d4af37;
+  --warm-white: #fffef9;
+  --soft-beige: #f5f1eb;
+  --dusty-rose: #f0c5c1;
+  --mocha: #8b5a3c;
+  --charcoal: #3a3a3a;
+  --soft-gray: #7a7a7a;
+  --sage-green: #a8b5a0;
+  
+  /* Design System Tokens for Radix UI */
+  --background: var(--warm-white);
+  --foreground: var(--charcoal);
+  --card: var(--cream);
+  --card-foreground: var(--charcoal);
+  --popover: var(--warm-white);
+  --popover-foreground: var(--charcoal);
+  --primary: var(--mocha);
+  --primary-foreground: var(--warm-white);
+  --secondary: var(--soft-beige);
+  --secondary-foreground: var(--charcoal);
+  --muted: var(--soft-beige);
+  --muted-foreground: var(--soft-gray);
+  --accent: var(--dusty-rose);
+  --accent-foreground: var(--charcoal);
+  --destructive: #dc2626;
+  --destructive-foreground: var(--warm-white);
+  --border: var(--soft-beige);
+  --input: var(--soft-beige);
+  --ring: var(--mocha);
+  --radius: 0.75rem;
   
   /* Typography */
-  --font-serif: 'Playfair Display', 'Cormorant Garamond', serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif: 'Playfair Display', 'Georgia', serif;
+  --font-body: 'Inter', 'system-ui', sans-serif;
   
   /* Shadows */
-  --shadow-soft: 0 4px 20px rgba(139, 105, 66, 0.1);
-  --shadow-medium: 0 8px 30px rgba(139, 105, 66, 0.15);
-  --shadow-strong: 0 12px 40px rgba(139, 105, 66, 0.2);
-  
-  /* Animations */
-  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
-  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --shadow-soft: 0 4px 6px -1px rgba(139, 90, 60, 0.1), 0 2px 4px -1px rgba(139, 90, 60, 0.06);
+  --shadow-medium: 0 10px 15px -3px rgba(139, 90, 60, 0.1), 0 4px 6px -2px rgba(139, 90, 60, 0.05);
+  --shadow-large: 0 25px 50px -12px rgba(139, 90, 60, 0.25);
 }
 
 body {
