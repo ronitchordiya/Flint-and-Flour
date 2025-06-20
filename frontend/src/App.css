@@ -3463,6 +3463,16 @@ p, .body-text, .description {
   box-shadow: var(--shadow-medium);
 }
 
+.auth-form button:focus,
+.login-btn:focus,
+.register-btn:focus,
+.submit-btn:focus {
+  background: var(--charcoal) !important;
+  color: white !important;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(139, 90, 60, 0.3);
+}
+
 /* Header auth buttons */
 .auth-links .nav-link,
 .auth-links button {
@@ -3479,6 +3489,35 @@ p, .body-text, .description {
 
 .auth-links .nav-link:hover,
 .auth-links button:hover {
+  background: var(--charcoal) !important;
+  color: white !important;
+}
+
+/* Ensure all form buttons have proper contrast */
+form button,
+form input[type="submit"] {
+  background: var(--mocha) !important;
+  color: white !important;
+  border: none;
+}
+
+form button:hover,
+form input[type="submit"]:hover {
+  background: var(--charcoal) !important;
+  color: white !important;
+}
+
+/* Register form specific styling */
+.register-form button,
+.login-form button {
+  background: var(--mocha) !important;
+  color: white !important;
+}
+
+.register-form button:hover,
+.login-form button:hover,
+.register-form button:focus,
+.login-form button:focus {
   background: var(--charcoal) !important;
   color: white !important;
 }
