@@ -720,13 +720,18 @@ const ProductDetail = () => {
           {/* Main Image Carousel */}
           <div className="main-carousel">
             <Swiper
-              modules={[Navigation, Pagination, Thumbs, Zoom]}
+              modules={[Navigation, Pagination, Thumbs, Zoom, Autoplay]}
               spaceBetween={10}
               navigation={{
                 nextEl: '.swiper-button-next-custom',
                 prevEl: '.swiper-button-prev-custom',
               }}
               pagination={{ clickable: true }}
+              autoplay={{
+                delay: 4000,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true,
+              }}
               thumbs={{ swiper: thumbsSwiper && !thumbsSwiper.destroyed ? thumbsSwiper : null }}
               zoom={true}
               className="main-product-swiper"
