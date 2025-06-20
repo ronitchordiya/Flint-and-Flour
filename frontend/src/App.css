@@ -3435,34 +3435,52 @@ p, .body-text, .description {
   line-height: 1.6;
 }
 
-/* Enhanced Button Styling with Perfect Contrast */
-button,
-.btn,
-.reorder-btn,
-.logout-btn,
-.add-to-cart-btn {
-  font-family: var(--font-body);
-  font-style: normal;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  border-radius: 12px; /* Standardized border radius */
-  cursor: pointer;
+/* Enhanced Auth Button Styling with Perfect Contrast */
+.auth-form button,
+.login-btn,
+.register-btn,
+.submit-btn {
+  background: var(--mocha);
+  color: white;
   border: none;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  margin-top: 1rem;
 }
 
-/* Prevent invisible text issues */
-button:hover,
-button:focus,
-button:active,
-.btn:hover,
-.btn:focus,
-.btn:active {
-  color: var(--charcoal) !important;
-  background: var(--dusty-rose) !important;
+.auth-form button:hover,
+.login-btn:hover,
+.register-btn:hover,
+.submit-btn:hover {
+  background: var(--charcoal) !important;
+  color: white !important;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-medium);
+}
+
+/* Header auth buttons */
+.auth-links .nav-link,
+.auth-links button {
+  background: var(--mocha);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.auth-links .nav-link:hover,
+.auth-links button:hover {
+  background: var(--charcoal) !important;
+  color: white !important;
 }
 
 /* Specific button fixes */
