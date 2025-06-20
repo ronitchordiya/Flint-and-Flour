@@ -1216,41 +1216,100 @@ async def create_checkout(checkout_request: CheckoutRequest, request: Request):
         # Save transaction to database
         await db.payment_transactions.insert_one(transaction.dict())
         
-        # DEMO MODE: Skip payment gateway integration for client demo
-        # Create order directly as completed for demonstration
-        order = Order(
-            user_email=checkout_request.user_email,
-            transaction_id=transaction.id,
-            items=[item.dict() for item in cart_response.items],
-            subtotal=cart_response.subtotal,
-            tax=cart_response.tax,
-            total=cart_response.total,
-            currency=cart_response.currency,
-            region=checkout_request.region,
-            delivery_address=checkout_request.delivery_address,
-            order_status="confirmed",
-            payment_status="completed"
-        )
+        # Route to appropriate payment gateway
+        if payment_gateway == "stripe":
+            # Create Stripe checkout session for Canada
+            try:
+                # Prepare line items for Stripe
+                line_items = []
+                for item in cart_response.items:
+                    line_items.append({
+                        "price_data": {
+                            "currency": cart_response.currency.lower(),
+                            "product_data": {
+                                "name": item.product_name,
+                                "description": f"Artisan {item.product_name} from Flint & Flours"
+                            },
+                            "unit_amount": int(item.unit_price * 100)  # Stripe uses cents
+                        },
+                        "quantity": item.quantity
+                    })
+                
+                # Create Stripe checkout session
+                checkout_session_request = CheckoutSessionRequest(
+                    line_items=line_items,
+                    success_url=f"{origin}/order-confirmation?session_id={{CHECKOUT_SESSION_ID}}&order_id={transaction.id}",
+                    cancel_url=f"{origin}/cart?cancelled=true",
+                    metadata={
+                        "transaction_id": transaction.id,
+                        "user_email": checkout_request.user_email,
+                        "region": checkout_request.region
+                    }
+                )
+                
+                stripe_response = await stripe_checkout.create_checkout_session(checkout_session_request)
+                
+                if stripe_response.success:
+                    # Update transaction with Stripe session ID
+                    await db.payment_transactions.update_one(
+                        {"id": transaction.id},
+                        {"$set": {
+                            "stripe_session_id": stripe_response.session_id,
+                            "updated_at": datetime.utcnow()
+                        }}
+                    )
+                    
+                    return CheckoutResponse(
+                        checkout_url=stripe_response.checkout_url,
+                        payment_gateway=payment_gateway,
+                        transaction_id=transaction.id,
+                        amount=cart_response.total,
+                        currency=cart_response.currency
+                    )
+                else:
+                    raise HTTPException(status_code=400, detail=f"Stripe error: {stripe_response.error}")
+                    
+            except Exception as e:
+                logger.error(f"Stripe checkout error: {str(e)}")
+                raise HTTPException(status_code=500, detail="Payment processing error")
         
-        await db.orders.insert_one(order.dict())
+        elif payment_gateway == "razorpay":
+            # Create Razorpay order for India
+            try:
+                razorpay_order = razorpay_client.order.create({
+                    "amount": int(cart_response.total * 100),  # Amount in paise
+                    "currency": cart_response.currency,
+                    "receipt": transaction.id,
+                    "notes": {
+                        "user_email": checkout_request.user_email,
+                        "region": checkout_request.region
+                    }
+                })
+                
+                # Update transaction with Razorpay order ID
+                await db.payment_transactions.update_one(
+                    {"id": transaction.id},
+                    {"$set": {
+                        "razorpay_order_id": razorpay_order["id"],
+                        "updated_at": datetime.utcnow()
+                    }}
+                )
+                
+                return CheckoutResponse(
+                    checkout_url=f"{origin}/checkout/razorpay?order_id={razorpay_order['id']}&transaction_id={transaction.id}",
+                    payment_gateway=payment_gateway,
+                    transaction_id=transaction.id,
+                    amount=cart_response.total,
+                    currency=cart_response.currency,
+                    razorpay_order_id=razorpay_order["id"]
+                )
+                
+            except Exception as e:
+                logger.error(f"Razorpay order creation error: {str(e)}")
+                raise HTTPException(status_code=500, detail="Payment processing error")
         
-        # Update transaction as completed
-        await db.payment_transactions.update_one(
-            {"id": transaction.id},
-            {"$set": {
-                "status": "completed",
-                "updated_at": datetime.utcnow()
-            }}
-        )
-        
-        return CheckoutResponse(
-            checkout_url=f"{origin}/order-confirmation?demo=true&order_id={order.id}",
-            payment_gateway=payment_gateway,
-            transaction_id=transaction.id,
-            amount=cart_response.total,
-            currency=cart_response.currency,
-            gateway_order_id=f"demo_{payment_gateway}_{transaction.id[:8]}"
-        )
+        else:
+            raise HTTPException(status_code=400, detail="Unsupported payment gateway")
             
     except Exception as e:
         logger.error(f"Checkout error: {e}")
