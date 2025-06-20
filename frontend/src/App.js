@@ -426,6 +426,8 @@ const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState('all');
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { region, addToCart } = useShopping();
   const { addToast } = useToast();
 
@@ -450,6 +452,16 @@ const Products = () => {
     addToCart(product, 1, subscriptionType);
     const subscriptionText = subscriptionType !== 'one-time' ? ` (${subscriptionType} subscription)` : '';
     addToast(`Added ${product.name}${subscriptionText} to cart!`, 'success');
+  };
+
+  const openProductModal = (product) => {
+    setSelectedProduct(product);
+    setIsModalOpen(true);
+  };
+
+  const closeProductModal = () => {
+    setIsModalOpen(false);
+    setSelectedProduct(null);
   };
 
   const getCategoryTitle = (cat) => {
