@@ -3241,45 +3241,47 @@ function App() {
     <div className="App">
       <AuthProvider>
         <ShoppingProvider>
-          <BrowserRouter>
-            <Header />
-            <main className="main-content">
-              <AnimatePresence mode="wait">
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/products" element={<Products />} />
-                  <Route path="/products/:productId" element={<ProductDetail />} />
-                  <Route path="/cart" element={<Cart />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/order-confirmation" element={<OrderConfirmation />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/profile" element={
-                    <ProtectedRoute>
-                      <Profile />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/my-orders" element={
-                    <ProtectedRoute>
-                      <OrderHistory />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/my-subscriptions" element={
-                    <ProtectedRoute>
-                      <MySubscriptions />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/admin" element={
-                    <AdminRoute>
-                      <Admin />
-                    </AdminRoute>
-                  } />
-                  <Route path="/init" element={<InitializeData />} />
-                </Routes>
-              </AnimatePresence>
-            </main>
-          </BrowserRouter>
+          <ToastProvider>
+            <Router>
+              <Header />
+              <main className="main-content">
+                <AnimatePresence mode="wait">
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/products" element={<Products />} />
+                    <Route path="/products/:productId" element={<ProductDetail />} />
+                    <Route path="/cart" element={<Cart />} />
+                    <Route path="/checkout" element={<Checkout />} />
+                    <Route path="/order-confirmation" element={<OrderConfirmation />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="/profile" element={
+                      <ProtectedRoute>
+                        <Profile />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/my-orders" element={
+                      <ProtectedRoute>
+                        <OrderHistory />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/my-subscriptions" element={
+                      <ProtectedRoute>
+                        <MySubscriptions />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/admin" element={
+                      <AdminRoute>
+                        <Admin />
+                      </AdminRoute>
+                    } />
+                    <Route path="/init" element={<InitializeData />} />
+                  </Routes>
+                </AnimatePresence>
+              </main>
+            </Router>
+          </ToastProvider>
         </ShoppingProvider>
       </AuthProvider>
     </div>
