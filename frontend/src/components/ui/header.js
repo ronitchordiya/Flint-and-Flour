@@ -13,6 +13,7 @@ import {
 import { Menu, X, Search, ShoppingCart, User } from "lucide-react";
 import { useAuth } from "../../App";
 import { useShopping } from "../../App";
+import { API } from "../../App";
 
 const FlintFloursHeader = () => {
   const { user, logout } = useAuth();
