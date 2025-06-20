@@ -657,16 +657,34 @@ const ProductDetail = () => {
     }
   };
 
-  // Enhanced product images - simulate multiple images for demo
+  // Enhanced product images - support multiple images with fallback
   const getProductImages = (product) => {
     if (!product) return [];
-    const baseImage = product.image_url;
-    return [
-      baseImage,
-      baseImage + '&fit=crop&crop=center',
-      baseImage + '&w=800&h=600',
-      baseImage + '&blur=0&brightness=20'
-    ].filter(Boolean);
+    
+    const images = [];
+    
+    // Add main image first
+    if (product.image_url) {
+      images.push(product.image_url);
+    }
+    
+    // Add additional images if available
+    if (product.additional_images && product.additional_images.length > 0) {
+      images.push(...product.additional_images);
+    }
+    
+    // If we only have one image, create variants for demo purposes
+    if (images.length === 1) {
+      const baseImage = images[0];
+      return [
+        baseImage,
+        baseImage + '&fit=crop&crop=center',
+        baseImage + '&w=800&h=600',
+        baseImage + '&blur=0&brightness=20'
+      ].filter(Boolean);
+    }
+    
+    return images.filter(Boolean);
   };
 
   const formatRegionAvailability = (region) => {
