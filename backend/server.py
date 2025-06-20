@@ -1006,16 +1006,16 @@ async def update_order(
 @api_router.get("/admin/stats", response_model=AdminStatsResponse)
 async def get_admin_stats(admin_user: User = Depends(get_admin_user)):
     """Get admin dashboard statistics"""
-    # Total orders
+    
+    # Count all orders
     total_orders = await db.orders.count_documents({})
     
-    # Pending orders
+    # Count orders by status
     pending_orders = await db.orders.count_documents({"order_status": "pending"})
+    shipped_orders = await db.orders.count_documents({"order_status": "shipped"})
+    delivered_orders = await db.orders.count_documents({"order_status": "delivered"})
     
-    # Shipped orders
-    shipped_orders = await db.orders.count_documents({"delivery_status": "shipped"})
-    
-    # Total revenue from completed payments
+    # Calculate total revenue
     revenue_pipeline = [
         {"$match": {"payment_status": "completed"}},
         {"$group": {"_id": None, "total": {"$sum": "$total"}}}
@@ -1023,7 +1023,7 @@ async def get_admin_stats(admin_user: User = Depends(get_admin_user)):
     revenue_result = await db.orders.aggregate(revenue_pipeline).to_list(1)
     total_revenue = revenue_result[0]["total"] if revenue_result else 0
     
-    # Monthly sales (current month)
+    # Calculate monthly sales (current month)
     current_month_start = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     monthly_pipeline = [
         {"$match": {
@@ -1035,13 +1035,20 @@ async def get_admin_stats(admin_user: User = Depends(get_admin_user)):
     monthly_result = await db.orders.aggregate(monthly_pipeline).to_list(1)
     monthly_sales = monthly_result[0]["total"] if monthly_result else 0
     
+    # Count new orders (last 24 hours)
+    yesterday = datetime.now() - timedelta(days=1)
+    new_orders = await db.orders.count_documents({
+        "created_at": {"$gte": yesterday}
+    })
+    
     return AdminStatsResponse(
         total_orders=total_orders,
-        total_revenue=total_revenue,
         pending_orders=pending_orders,
         shipped_orders=shipped_orders,
+        delivered_orders=delivered_orders,
+        total_revenue=total_revenue,
         monthly_sales=monthly_sales,
-        top_products=[]
+        new_orders=new_orders
     )
 
 # USER ORDER & SUBSCRIPTION ENDPOINTS
