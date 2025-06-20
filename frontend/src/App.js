@@ -2148,6 +2148,29 @@ const OrdersManagement = ({ orders, filters, setFilters, onUpdateOrder }) => {
 
 // Products Management Component with Edit & Photo Upload
 const ProductsManagement = ({ products, showCreateForm, setShowCreateForm, editingProduct, setEditingProduct, onDeleteProduct, onUpdateProduct, onRefresh }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredProducts, setFilteredProducts] = useState(products);
+
+  // Update filtered products when search or products change
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredProducts(products);
+    } else {
+      const filtered = products.filter(product => 
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (product.ingredients && product.ingredients.some(ing => 
+          ing.toLowerCase().includes(searchQuery.toLowerCase())
+        ))
+      );
+      setFilteredProducts(filtered);
+    }
+  }, [searchQuery, products]);
+
+  const clearSearch = () => {
+    setSearchQuery('');
+  };
+
   return (
     <motion.div 
       className="products-management"
@@ -2157,15 +2180,42 @@ const ProductsManagement = ({ products, showCreateForm, setShowCreateForm, editi
     >
       <div className="products-header">
         <h2>Product Management</h2>
-        <motion.button 
-          className="create-product-btn"
-          onClick={() => setShowCreateForm(!showCreateForm)}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          {showCreateForm ? 'Cancel' : 'Create New Product'}
-        </motion.button>
+        <div className="products-controls">
+          <div className="search-container">
+            <input
+              type="text"
+              placeholder="Search products by name, category, or ingredients..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="product-search"
+            />
+            {searchQuery && (
+              <button 
+                onClick={clearSearch}
+                className="clear-search-btn"
+                title="Clear search"
+              >
+                ×
+              </button>
+            )}
+          </div>
+          <motion.button 
+            className="create-product-btn"
+            onClick={() => setShowCreateForm(!showCreateForm)}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            {showCreateForm ? 'Cancel' : 'Create New Product'}
+          </motion.button>
+        </div>
       </div>
+
+      {/* Search Results Info */}
+      {searchQuery && (
+        <div className="search-results-info">
+          <p>Showing {filteredProducts.length} of {products.length} products for "{searchQuery}"</p>
+        </div>
+      )}
 
       <AnimatePresence>
         {showCreateForm && (
