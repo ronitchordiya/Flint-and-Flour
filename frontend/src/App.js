@@ -800,7 +800,7 @@ const ProductDetail = () => {
           </div>
           
           <div className="product-detail-price">
-            {product.regional_price?.toFixed(2)} {product.currency}
+            {formatPrice(product.regional_price)}
           </div>
           
           {stockWarning && (
