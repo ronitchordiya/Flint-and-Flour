@@ -1227,10 +1227,9 @@ async def create_checkout(checkout_request: CheckoutRequest, request: Request):
                         "price_data": {
                             "currency": cart_response.currency.lower(),
                             "product_data": {
-                                "name": item.product_name,
-                                "description": f"Artisan {item.product_name} from Flint & Flours"
+                                "name": item.product_name
                             },
-                            "unit_amount": int(item.unit_price * 100)  # Stripe uses cents
+                            "unit_amount": int(item.unit_price * 100)
                         },
                         "quantity": item.quantity
                     })
