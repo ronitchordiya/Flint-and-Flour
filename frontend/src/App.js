@@ -555,6 +555,8 @@ const Products = () => {
               exit={{ opacity: 0, scale: 0.9 }}
               whileHover={{ y: -8 }}
               transition={{ duration: 0.3 }}
+              onClick={() => openProductModal(product)}
+              style={{ cursor: 'pointer' }}
             >
               <div className="product-image">
                 <img src={product.image_url} alt={product.name} />
