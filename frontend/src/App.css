@@ -3660,9 +3660,34 @@ button[style*="background-color: white"]:hover {
   }
 }
 
-/* New Header Styling */
-.font-serif {
-  font-family: var(--font-serif);
+/* Header spacing fix */
+.main-content {
+  padding-top: 120px; /* Increased from 80px to create more space */
+}
+
+/* Product collection section spacing */
+.products-page {
+  padding-top: 2rem; /* Add extra space after header */
+}
+
+/* Navbar Styling Improvements */
+.header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--soft-beige);
+  box-shadow: 0 2px 20px rgba(139, 90, 60, 0.08);
+  z-index: 1000;
+}
+
+/* Fix header content spacing */
+header .container {
+  padding: 1rem 2rem;
+}
+
+/* Our Complete Collection heading spacing */
+.products-title {
+  margin-top: 2rem;
+  margin-bottom: 3rem;
 }
 
 .text-mocha {
