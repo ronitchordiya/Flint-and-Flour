@@ -1737,6 +1737,8 @@ const Admin = () => {
   });
   const [hasShownWelcomeNotification, setHasShownWelcomeNotification] = useState(false);
   const { addToast } = useToast();
+  const [hasShownWelcomeNotification, setHasShownWelcomeNotification] = useState(false);
+  const { addToast } = useToast();
 
   useEffect(() => {
     fetchInitialData();
