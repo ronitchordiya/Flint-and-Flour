@@ -3245,7 +3245,7 @@ function App() {
       <AuthProvider>
         <ShoppingProvider>
           <ToastProvider>
-            <BrowserRouter>
+            <Router>
               <Header />
               <main className="main-content">
                 <AnimatePresence mode="wait">
