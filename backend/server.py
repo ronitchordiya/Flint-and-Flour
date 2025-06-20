@@ -22,6 +22,14 @@ import hashlib
 # Setup logging
 logger = logging.getLogger(__name__)
 
+# Email service import
+from utils.email import (
+    send_verification_email,
+    send_password_reset_email, 
+    send_order_confirmation_email,
+    send_shipping_update_email
+)
+
 # Payment integrations
 from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
 import razorpay
