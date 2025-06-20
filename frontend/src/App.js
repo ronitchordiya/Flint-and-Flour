@@ -607,12 +607,7 @@ const Products = () => {
         </AnimatePresence>
       </motion.div>
 
-      {/* Product Modal */}
-      <ProductModal 
-        product={selectedProduct}
-        isOpen={isModalOpen}
-        onClose={closeProductModal}
-      />
+
     </motion.div>
   );
 };
