@@ -3251,3 +3251,5 @@ function App() {
 }
 
 export { useAuth, useShopping, useToast };
+
+export default App;
