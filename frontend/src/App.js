@@ -238,7 +238,8 @@ const ShoppingProvider = ({ children }) => {
     removeFromCart,
     updateCartQuantity,
     clearCart,
-    getCartTotal
+    getCartTotal,
+    formatPrice
   };
 
   return <ShoppingContext.Provider value={value}>{children}</ShoppingContext.Provider>;
