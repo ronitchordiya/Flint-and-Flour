@@ -1372,8 +1372,80 @@ async def get_payment_status(transaction_id: str):
             currency=transaction.currency
         )
 
-@api_router.post("/payments/razorpay/verify")
-async def verify_razorpay_payment(request: Request):
+@api_router.post("/payments/stripe/webhook")
+async def stripe_webhook(request: Request):
+    """Handle Stripe webhook events"""
+    try:
+        payload = await request.body()
+        sig_header = request.headers.get('stripe-signature')
+        
+        # For demo purposes, we'll process without signature verification
+        # In production, add proper webhook signature verification
+        
+        import json
+        event = json.loads(payload)
+        
+        if event['type'] == 'checkout.session.completed':
+            session = event['data']['object']
+            session_id = session['id']
+            
+            # Find the transaction
+            transaction = await db.payment_transactions.find_one({"stripe_session_id": session_id})
+            if not transaction:
+                logger.error(f"Transaction not found for Stripe session: {session_id}")
+                return {"status": "error", "message": "Transaction not found"}
+            
+            # Create the order
+            order = Order(
+                user_email=transaction["user_email"],
+                transaction_id=transaction["id"],
+                items=transaction["cart_items"],
+                total=transaction["amount"],
+                currency=transaction["currency"],
+                region=transaction["region"],
+                delivery_address=transaction["delivery_address"],
+                order_status="confirmed",
+                payment_status="completed"
+            )
+            
+            await db.orders.insert_one(order.dict())
+            
+            # Update transaction status
+            await db.payment_transactions.update_one(
+                {"id": transaction["id"]},
+                {"$set": {
+                    "status": "completed",
+                    "updated_at": datetime.utcnow()
+                }}
+            )
+            
+            # Send order confirmation email
+            try:
+                order_data = {
+                    "order_id": order.id,
+                    "order_date": order.created_at.strftime("%B %d, %Y"),
+                    "region": order.region,
+                    "items": order.items,
+                    "total": order.total,
+                    "currency": "CAD" if order.region == "Canada" else "INR",
+                    "expected_delivery": "2-3 business days"
+                }
+                
+                await send_order_confirmation_email(
+                    recipient_email=order.user_email,
+                    order_data=order_data
+                )
+                logger.info(f"Order confirmation email sent for order: {order.id}")
+            except Exception as e:
+                logger.error(f"Failed to send order confirmation email: {str(e)}")
+            
+            logger.info(f"Order created successfully: {order.id}")
+            
+        return {"status": "success"}
+        
+    except Exception as e:
+        logger.error(f"Stripe webhook error: {str(e)}")
+        return {"status": "error", "message": str(e)}
     """Verify Razorpay payment from frontend"""
     try:
         data = await request.json()
