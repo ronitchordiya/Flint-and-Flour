@@ -1476,16 +1476,20 @@ const OrderHistory = () => {
               animate="animate"
               transition={{ delay: index * 0.1 }}
             >
-              <div className="order-header">
+              <div className="order-meta">
                 <div className="order-info">
-                  <h3 className="order-id">Order #{order.id.slice(-8)}</h3>
-                  <span className="order-date">{formatDate(order.created_at, order.region)}</span>
+                  <span className="order-id">#{order.id.slice(-8)}</span>
+                  <span className="order-date">{formatDate(order.created_at)}</span>
+                  <span className="order-region">{order.region} {order.region === 'India' ? '🇮🇳' : '🇨🇦'}</span>
                 </div>
-                <div className="order-status">
-                  <span className={`status-badge ${getStatusBadgeClass(order.order_status)}`}>
-                    {order.order_status}
+
+                <div className="order-status-badges">
+                  <span className={`status-badge payment-${order.payment_status}`}>
+                    Payment: {order.payment_status}
                   </span>
-                  <span className="order-total">{order.total} {order.currency}</span>
+                  <span className={`status-badge delivery-${order.delivery_status}`}>
+                    Delivery: {order.delivery_status}
+                  </span>
                 </div>
               </div>
 
