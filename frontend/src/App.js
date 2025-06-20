@@ -489,6 +489,7 @@ const Products = () => {
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState('all');
   const { region, addToCart } = useShopping();
+  const { addToast } = useToast();
 
   useEffect(() => {
     fetchProducts();
@@ -509,6 +510,8 @@ const Products = () => {
 
   const handleAddToCart = (product, subscriptionType = 'one-time') => {
     addToCart(product, 1, subscriptionType);
+    const subscriptionText = subscriptionType !== 'one-time' ? ` (${subscriptionType} subscription)` : '';
+    addToast(`Added ${product.name}${subscriptionText} to cart!`, 'success');
   };
 
   const getCategoryTitle = (cat) => {
