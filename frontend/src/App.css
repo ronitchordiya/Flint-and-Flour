@@ -3437,11 +3437,12 @@ p, .body-text, .description {
 
 /* Enhanced Auth Button Styling with Perfect Contrast */
 .auth-form button,
+.auth-btn,
 .login-btn,
 .register-btn,
 .submit-btn {
-  background: var(--mocha);
-  color: white;
+  background: var(--mocha) !important;
+  color: white !important;
   border: none;
   padding: 1rem 2rem;
   border-radius: 12px;
@@ -3454,6 +3455,7 @@ p, .body-text, .description {
 }
 
 .auth-form button:hover,
+.auth-btn:hover,
 .login-btn:hover,
 .register-btn:hover,
 .submit-btn:hover {
@@ -3464,6 +3466,7 @@ p, .body-text, .description {
 }
 
 .auth-form button:focus,
+.auth-btn:focus,
 .login-btn:focus,
 .register-btn:focus,
 .submit-btn:focus {
@@ -3471,6 +3474,19 @@ p, .body-text, .description {
   color: white !important;
   outline: none;
   box-shadow: 0 0 0 3px rgba(139, 90, 60, 0.3);
+}
+
+/* Force override for any conflicting styles */
+button.auth-btn,
+button.auth-btn:hover,
+button.auth-btn:focus,
+button.auth-btn:active {
+  background: var(--mocha) !important;
+  color: white !important;
+}
+
+button.auth-btn:hover {
+  background: var(--charcoal) !important;
 }
 
 /* Header auth buttons */
