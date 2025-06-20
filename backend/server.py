@@ -935,26 +935,26 @@ async def get_admin_orders(
     # Get orders with filters
     orders = await db.orders.find(query).sort("created_at", -1).to_list(1000)
     
-    # Convert to response format
+    # Convert to response format with enhanced order type info
     result = []
     for order_doc in orders:
-        order = Order(**order_doc)
-        result.append(OrderResponse(
-            id=order.id,
-            user_email=order.user_email,
-            items=order.items,
-            total=order.total,
-            currency=order.currency,
-            region=order.region,
-            delivery_address=order.delivery_address,
-            order_status=order.order_status,
-            payment_status=order.payment_status,
-            delivery_status=order.delivery_status,
-            tracking_link=order.tracking_link,
-            delivery_date=order.delivery_date,
-            notes=order.notes,
-            created_at=order.created_at
-        ))
+        # Determine order type and subscription frequency
+        order_type_info = "One-Time"
+        subscription_frequency = None
+        
+        if order_doc.get("items"):
+            for item in order_doc["items"]:
+                if item.get("subscription_type") and item["subscription_type"] != "one-time":
+                    order_type_info = "Subscription"
+                    subscription_frequency = item["subscription_type"].title()
+                    break
+        
+        # Enhanced order response
+        enhanced_order = OrderResponse(**order_doc)
+        enhanced_order.order_type = order_type_info
+        enhanced_order.subscription_frequency = subscription_frequency
+        
+        result.append(enhanced_order)
     
     return result
 
