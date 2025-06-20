@@ -625,7 +625,7 @@ async def get_products(region: str = "India", category: Optional[str] = None, se
             {"name": search_regex},
             {"description": search_regex},
             {"category": search_regex},
-            {"ingredients": {"$in": [search_regex]}},
+            {"ingredients": {"$elemMatch": {"$regex": search, "$options": "i"}}},
             {"bakers_notes": search_regex}
         ]
     
