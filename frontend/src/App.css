@@ -3782,13 +3782,122 @@ input[type="text"]:focus {
   }
 }
 
-@keyframes animate-out {
+/* Enhanced Product Detail Images - Better Aspect Ratio Handling */
+.product-carousel-image,
+.product-main-image {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 12px;
+  transition: transform 0.3s ease;
+}
+
+.product-carousel-image:hover {
+  transform: scale(1.02);
+  cursor: zoom-in;
+}
+
+.thumbnail-image {
+  width: 100%;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+.thumbnail-image:hover,
+.swiper-slide-thumb-active .thumbnail-image {
+  opacity: 1;
+  border: 2px solid var(--mocha);
+}
+
+/* Product Detail Container - Better Spacing */
+.product-detail-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.product-images-section {
+  position: sticky;
+  top: 100px;
+  height: fit-content;
+}
+
+.product-info-section {
+  padding: 1rem 0;
+}
+
+/* Single Product Image */
+.single-product-image {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-medium);
+}
+
+/* Search Results Styling */
+.search-results-dropdown {
+  z-index: 9999;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
   from {
-    opacity: 1;
-    transform: scale(1);
+    opacity: 0;
+    transform: translateY(-10px);
   }
   to {
-    opacity: 0;
-    transform: scale(0.95);
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Enhanced Swiper Pagination */
+.main-product-swiper .swiper-pagination {
+  bottom: 10px;
+}
+
+.main-product-swiper .swiper-pagination-bullet {
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px solid var(--mocha);
+  opacity: 1;
+}
+
+.main-product-swiper .swiper-pagination-bullet-active {
+  background: var(--mocha);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .product-detail-container {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding: 1rem;
+  }
+  
+  .product-images-section {
+    position: static;
+  }
+  
+  .product-carousel-image,
+  .product-main-image {
+    height: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-carousel-image,
+  .product-main-image {
+    height: 250px;
+  }
+  
+  .thumbnail-image {
+    height: 60px;
   }
 }
