@@ -279,16 +279,47 @@ const FlintFloursHeader = () => {
           {isOpen && (
             <div className="absolute top-20 border-t flex flex-col w-full right-0 bg-white shadow-lg py-4 container gap-8">
               {/* Mobile Search */}
-              <form onSubmit={handleSearch} className="px-4">
+              <form onSubmit={handleSearch} className="px-4 relative">
                 <div className="relative">
                   <input
                     type="text"
                     placeholder="Search products..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={handleSearchChange}
+                    onBlur={handleSearchBlur}
+                    onFocus={() => searchQuery.length >= 2 && setShowSearchResults(true)}
                     className="pl-10 pr-4 py-2 w-full border border-soft-beige rounded-lg focus:outline-none focus:ring-2 focus:ring-mocha"
                   />
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-soft-gray w-4 h-4" />
+                  
+                  {/* Mobile Search Results */}
+                  {showSearchResults && searchResults.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-soft-beige rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                      {searchResults.map((product) => (
+                        <div
+                          key={product.id}
+                          onClick={() => {
+                            handleSearchResultClick(product);
+                            setOpen(false);
+                          }}
+                          className="p-3 hover:bg-warm-white cursor-pointer border-b border-soft-beige last:border-b-0 flex items-center gap-3"
+                        >
+                          <img 
+                            src={product.image_url} 
+                            alt={product.name}
+                            className="w-10 h-10 object-cover rounded"
+                          />
+                          <div className="flex-1">
+                            <div className="font-medium text-charcoal">{product.name}</div>
+                            <div className="text-sm text-soft-gray">{product.category}</div>
+                          </div>
+                          <div className="text-mocha font-semibold">
+                            {region === 'India' ? '₹' : '$'}{product.regional_price}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </form>
 
