@@ -252,13 +252,13 @@ class CheckoutRequest(BaseModel):
     promo_code: Optional[str] = None
 
 class CheckoutResponse(BaseModel):
-    checkout_url: Optional[str] = None
+    checkout_url: str
     payment_gateway: str
     transaction_id: str
     amount: float
     currency: str
     gateway_order_id: Optional[str] = None
-    razorpay_key_id: Optional[str] = None
+    razorpay_order_id: Optional[str] = None
 
 class PaymentStatusRequest(BaseModel):
     transaction_id: str
