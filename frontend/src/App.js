@@ -8,6 +8,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/thumbs';
 import 'swiper/css/zoom';
+import 'swiper/css/autoplay';
 import axios from 'axios';
 import './App.css';
 import { FlintFloursHeader } from './components/ui/header';
