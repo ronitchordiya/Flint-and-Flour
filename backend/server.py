@@ -1326,9 +1326,9 @@ async def get_payment_status(transaction_id: str):
     transaction = PaymentTransaction(**transaction_doc)
     
     try:
-        if transaction.payment_gateway == "stripe" and transaction.gateway_order_id:
-            # Check Stripe status
-            session = stripe.checkout.Session.retrieve(transaction.gateway_order_id)
+        if transaction.payment_gateway == "stripe" and transaction.stripe_session_id:
+            # Check Stripe status using native SDK
+            session = stripe.checkout.Session.retrieve(transaction.stripe_session_id)
             payment_status = session.payment_status
             
             # Update transaction status
