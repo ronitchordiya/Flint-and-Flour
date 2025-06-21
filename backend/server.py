@@ -486,7 +486,7 @@ async def register(user_data: UserCreate):
         email_result = await send_verification_email(
             recipient_email=user_data.email,
             verification_token=verification_token,
-            base_url="https://7dbdecab-5916-447f-8d41-222dafed78fb.preview.emergentagent.com"
+            base_url="https://5cf1e327-b47c-4e63-8a38-5a055dc0238f.preview.emergentagent.com"
         )
         
         if email_result["success"]:
@@ -588,7 +588,7 @@ async def request_password_reset(request: PasswordResetRequest):
         email_result = await send_password_reset_email(
             recipient_email=request.email,
             reset_token=reset_token,
-            base_url="https://7dbdecab-5916-447f-8d41-222dafed78fb.preview.emergentagent.com"
+            base_url="https://5cf1e327-b47c-4e63-8a38-5a055dc0238f.preview.emergentagent.com"
         )
         
         if email_result["success"]:
