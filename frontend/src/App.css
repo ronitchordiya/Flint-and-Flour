@@ -12,6 +12,7 @@
   --soft-beige: #f5f1eb;
   --dusty-rose: #f0c5c1;
   --mocha: #8b5a3c;
+  --deep-mocha: #6d4530;
   --charcoal: #3a3a3a;
   --soft-gray: #7a7a7a;
   --sage-green: #a8b5a0;
@@ -46,6 +47,10 @@
   --shadow-soft: 0 4px 6px -1px rgba(139, 90, 60, 0.1), 0 2px 4px -1px rgba(139, 90, 60, 0.06);
   --shadow-medium: 0 10px 15px -3px rgba(139, 90, 60, 0.1), 0 4px 6px -2px rgba(139, 90, 60, 0.05);
   --shadow-large: 0 25px 50px -12px rgba(139, 90, 60, 0.25);
+  --shadow-strong: 0 20px 25px -5px rgba(139, 90, 60, 0.1), 0 10px 10px -5px rgba(139, 90, 60, 0.04);
+  
+  /* Animation Easing */
+  --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
 body {
