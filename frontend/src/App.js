@@ -308,7 +308,7 @@ const Home = () => {
           >
             <h1 className="hero-title">Where tradition meets artistry</h1>
             <p className="hero-subtitle">
-              Order by 10:00 AM for same-day delivery
+              Handcrafted breads, artisanal treats, and timeless recipes made fresh daily in our boutique bakery.
             </p>
             
             {deliveryInfo && (
