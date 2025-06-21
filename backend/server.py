@@ -1328,26 +1328,27 @@ async def get_payment_status(transaction_id: str):
     try:
         if transaction.payment_gateway == "stripe" and transaction.gateway_order_id:
             # Check Stripe status
-            status_response = await stripe_checkout.get_checkout_status(transaction.gateway_order_id)
+            session = stripe.checkout.Session.retrieve(transaction.gateway_order_id)
+            payment_status = session.payment_status
             
             # Update transaction status
             await db.payment_transactions.update_one(
                 {"id": transaction_id},
                 {"$set": {
-                    "status": "completed" if status_response.payment_status == "paid" else transaction.status,
-                    "payment_status": status_response.payment_status,
+                    "status": "completed" if payment_status == "paid" else transaction.status,
+                    "payment_status": payment_status,
                     "updated_at": datetime.utcnow()
                 }}
             )
             
             # Create order if payment successful
-            if status_response.payment_status == "paid" and transaction.status != "completed":
+            if payment_status == "paid" and transaction.status != "completed":
                 await create_order_from_transaction(transaction)
             
             return PaymentStatusResponse(
                 transaction_id=transaction_id,
-                status="completed" if status_response.payment_status == "paid" else transaction.status,
-                payment_status=status_response.payment_status,
+                status="completed" if payment_status == "paid" else transaction.status,
+                payment_status=payment_status,
                 amount=transaction.amount,
                 currency=transaction.currency
             )
