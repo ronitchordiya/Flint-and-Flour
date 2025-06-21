@@ -67,7 +67,6 @@ RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', 'demo_secret')
 RAZORPAY_WEBHOOK_SECRET = os.environ.get('RAZORPAY_WEBHOOK_SECRET', 'demo_webhook_secret')
 
 # Initialize payment clients
-stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY)
 razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
 
 # Password hashing
