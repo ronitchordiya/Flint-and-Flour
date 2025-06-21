@@ -2217,6 +2217,44 @@ async def initialize_sample_data():
     
     return {"message": "Sample data initialized successfully"}
 
+# Root routes (not under /api prefix)
+@app.get("/")
+async def root():
+    """Root endpoint for basic health check"""
+    return {
+        "status": "ok",
+        "message": "🥖 Welcome to Flint & Flours Artisan Bakery API",
+        "version": "2.0.0",
+        "endpoints": {
+            "health": "/health",
+            "api_health": "/api/health", 
+            "api_docs": "/docs",
+            "products": "/api/products",
+            "auth": "/api/auth/"
+        }
+    }
+
+@app.get("/health")
+async def health_check_root():
+    """Health check endpoint at root level for uptime monitoring"""
+    return {
+        "status": "healthy",
+        "timestamp": datetime.utcnow(),
+        "service": "Flint & Flours Backend API",
+        "version": "2.0.0"
+    }
+
+@app.get("/status")
+async def status_check():
+    """Alias for health check - commonly used by deployment platforms"""
+    return {
+        "status": "healthy",
+        "timestamp": datetime.utcnow(),
+        "service": "Flint & Flours Backend API",
+        "version": "2.0.0",
+        "uptime": "running"
+    }
+
 # Include the router in the main app
 app.include_router(api_router)
 
